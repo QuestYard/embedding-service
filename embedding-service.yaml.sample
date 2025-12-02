@@ -1,0 +1,12 @@
+env:		# SERVER ENVIRONMENT
+  device:       # cpu (default) or cuda
+  model_home:   # /path/to/model_home, e.g. /home/user/.cache/modelscope/hub/models
+embedding:	# EMBEDDING MODEL CONFIGURATIONS
+  mode:         # bge-m3 (default), qwen-s, qwen, splade
+  qwen3_name:   # name (directory name) of the local qwen3 embedding model
+  batch_size:   # >=4 (default 16)
+reranker:	# RERANKER MODEL CONFIGURATIONS
+  model:        # bge (default) or qwen
+  qwen3_name:   # name (directory name) of the local qwen3 reranker model
+  batch_size:   # >=4 (default 4)
+
