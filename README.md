@@ -22,8 +22,8 @@
 
 在服务配置文件中配置内嵌模式：
 
-- **BGE-M3**: 默认模式，使用 BGE-M3 模型，支持全部 3 种内嵌方式；
-- **Qwen-S**: 使用 Qwen3-Embedding 和 Splade-V3 两种模型，支持密集和稀疏两种向量内嵌；
+- **BGE**: 默认模式，使用 BGE-M3 模型，支持全部 3 种内嵌方式；
+- **Qwen-Splade**: 使用 Qwen3-Embedding 和 Splade-V3 两种模型，支持密集和稀疏两种向量内嵌；
 - **Qwen**: 使用 Qwen3-Embedding 模型，仅支持密集向量内嵌；
 - **Splade**: 使用 Splade-V3 模型，仅支持稀疏向量内嵌。
 
@@ -74,17 +74,19 @@ cp <src-dir>/startup.sh .
 修改工作目录下的配置文件 `embedding-service.yaml` ：
 
 ```yaml
-# server environment
-env:
+env:		    # SERVER ENVIRONMENT
   device:       # cpu (default) or cuda
   model_home:   # /path/to/model_home, e.g. /home/user/.cache/modelscope/hub/models
-embedding:
-  mode:         # bge-m3 (default), qwen-s, qwen, splade
-  qwen3_name:   # name (directory name) of the local qwen3 embedding model
+embedding:	    # EMBEDDING MODEL CONFIGURATIONS
+  mode:         # bge (default), qwen-splade, qwen, splade
+  qwen3_name:   # name (path name) of the local qwen3 embedding model
+  bge_name:     # name (path name) of the local bge-m3 model
+  splade_name:  # name (path name) of the local splade-v3 model
   batch_size:   # >=4 (default 16)
-reranker:
+reranker:	    # RERANKER MODEL CONFIGURATIONS
   model:        # bge (default) or qwen
   qwen3_name:   # name (directory name) of the local qwen3 reranker model
+  bge_name:     # name (path name) of the local bge-reranker-v2-m3 model
   batch_size:   # >=4 (default 4)
 ```
 
