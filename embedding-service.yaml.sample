@@ -8,8 +8,11 @@ embedding:      # EMBEDDING MODEL CONFIGURATIONS
   splade_name:  # name (path name) of the local splade-v3 model
   batch_size:   # >=4 (default 16)
 reranker:       # RERANKER MODEL CONFIGURATIONS
-  model:        # bge (default) or qwen
+  mode:         # bge (default) or qwen
   qwen3_name:   # name (directory name) of the local qwen3 reranker model
   bge_name:     # name (path name) of the local bge-reranker-v2-m3 model
   batch_size:   # >=4 (default 4)
+service:        # MICRO-SERVICE CONFIGURATIONS
+  host:         # 0.0.0.0 (default), ip-addr for allowed hosts 
+  port:         # 8765 (default), port of service
 

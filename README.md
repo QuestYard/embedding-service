@@ -74,20 +74,23 @@ cp <src-dir>/startup.sh .
 修改工作目录下的配置文件 `embedding-service.yaml` ：
 
 ```yaml
-env:		    # SERVER ENVIRONMENT
+env:            # SERVER ENVIRONMENT
   device:       # cpu (default) or cuda
   model_home:   # /path/to/model_home, e.g. /home/user/.cache/modelscope/hub/models
-embedding:	    # EMBEDDING MODEL CONFIGURATIONS
+embedding:      # EMBEDDING MODEL CONFIGURATIONS
   mode:         # bge (default), qwen-splade, qwen, splade
   qwen3_name:   # name (path name) of the local qwen3 embedding model
   bge_name:     # name (path name) of the local bge-m3 model
   splade_name:  # name (path name) of the local splade-v3 model
   batch_size:   # >=4 (default 16)
-reranker:	    # RERANKER MODEL CONFIGURATIONS
-  model:        # bge (default) or qwen
+reranker:       # RERANKER MODEL CONFIGURATIONS
+  mode:         # bge (default) or qwen
   qwen3_name:   # name (directory name) of the local qwen3 reranker model
   bge_name:     # name (path name) of the local bge-reranker-v2-m3 model
   batch_size:   # >=4 (default 4)
+service:        # MICRO-SERVICE CONFIGURATIONS
+  host:         # 0.0.0.0 (default), ip-addr for allowed hosts 
+  port:         # 8765 (default), port of service
 ```
 
 **启动与测试**
