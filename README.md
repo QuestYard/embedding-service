@@ -18,16 +18,14 @@
 
 其中 Qwen3-Embedding 模型的尺寸包括 0.6B, 4B, 8B 三种，根据实际下载使用的模型尺寸，在配置文件中配置，*每个服务实例只能选择其中一种尺寸*。
 
-**模式配置**
+**模型选择**
 
-在服务配置文件中配置内嵌模式：
+在服务配置文件中选择要使用的 embedding 模型：
 
-- **BGE**: 默认模式，使用 BGE-M3 模型，支持全部 3 种内嵌方式；
-- **Qwen-Splade**: 使用 Qwen3-Embedding 和 Splade-V3 两种模型，支持密集和稀疏两种向量内嵌；
-- **Qwen**: 使用 Qwen3-Embedding 模型，仅支持密集向量内嵌；
-- **Splade**: 使用 Splade-V3 模型，仅支持稀疏向量内嵌。
+- `dense_model`: `bge` 或者 `qwen3`，默认使用 BGE-M3 模型，此时可支持 ColBERT 多向量内嵌，使用 Qwen3 模型时不支持 ColBERT；
+- `sparse_model`: `bge` 或者 `splade`；
 
-*以上四种模式，每个服务实例只能选择其中一种*。
+目前只提供 BGE-M3 一种 ColBERT 多向量内嵌模型，无需在配置文件中配置。 `dense_model` 或 `sparse_model` 任一设置为 `bge` 时可提供 ColBERT 多向量内嵌，否则即不支持。
 
 **调用参数**
 
@@ -35,7 +33,7 @@
 
 ### Reranker
 
-支持 BGE-Reranker-V2-M3 模型和 Qwen3-Reranker 系列模型，默认使用 BGE-Reranker-V2-M3 模型。
+支持 BGE-Reranker-V2-M3 模型和 Qwen3-Reranker 系列模型，默认使用 BGE-Reranker-V2-M3 模型。在配置文件中设置 `reranker.model` 为 `bge` 或 `qwen3` 进行选择。
 
 *重排模型与内嵌模型不必要相互对应*。
 
@@ -78,15 +76,16 @@ env:            # SERVER ENVIRONMENT
   device:       # cpu (default) or cuda
   model_home:   # /path/to/model_home, e.g. /home/user/.cache/modelscope/hub/models
 embedding:      # EMBEDDING MODEL CONFIGURATIONS
-  mode:         # bge (default), qwen-splade, qwen, splade
-  qwen3_name:   # name (path name) of the local qwen3 embedding model
+  dense_model:  # bge (default) or qwen3
+  sparse_model: # bge (default) or splade
   bge_name:     # name (path name) of the local bge-m3 model
+  qwen3_name:   # name (path name) of the local qwen3 embedding model
   splade_name:  # name (path name) of the local splade-v3 model
   batch_size:   # >=4 (default 16)
 reranker:       # RERANKER MODEL CONFIGURATIONS
-  mode:         # bge (default) or qwen
-  qwen3_name:   # name (directory name) of the local qwen3 reranker model
+  model:        # bge (default) or qwen3
   bge_name:     # name (path name) of the local bge-reranker-v2-m3 model
+  qwen3_name:   # name (directory name) of the local qwen3 reranker model
   batch_size:   # >=4 (default 4)
 service:        # MICRO-SERVICE CONFIGURATIONS
   host:         # 0.0.0.0 (default), ip-addr for allowed hosts 

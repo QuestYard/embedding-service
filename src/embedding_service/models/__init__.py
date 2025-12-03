@@ -5,10 +5,9 @@
 # Filename         : __init__.py
 # Project          : HuRAG
 #*********************************************************************
-from .bge_m3 import ef as bge_m3_ef, startup as bge_m3_startup
+from .bge_m3 import ef as bge_m3_ef
 
 __all__ = [
     "bge_m3_ef",
-    "bge_m3_startup",
 ]
 

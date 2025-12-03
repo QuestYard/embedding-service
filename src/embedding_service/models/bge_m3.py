@@ -1,30 +1,30 @@
 #*********************************************************************
 # Author           : Libin
 # Company          : huz.zj.yc
-# Last modified    : 2025-12-03 10:57
+# Last modified    : 2025-12-03 23:28
 # Filename         : bge_m3.py
 # Project          : HuRAG/embedding-service
 #*********************************************************************
-from .. import conf
+from .. import conf, logger
 from .abstract_models import AbstractEmbedder, AbstractReranker
 
+from typing import Literal, Any
 # from FlagEmbedding import BGEM3FlagModel
 
-class BGEM3:
-    MODEL = None
-    RETURN_DENSE: bool
-    RETURN_SPARSE: bool
-    RETURN_COLBERT_VECS: bool
+class BGEM3(AbstractEmbedder):
+    model = None
 
     @classmethod
     def encode(
         cls,
         sentences: str|list[str],
+        batch_size: int|None,
         normalize_embeddings: bool|None,
         return_dense: bool|None,
         return_sparse: bool|None,
         return_colbert_vecs: bool|None,
-    ):
+        **kwargs,
+    )-> dict[Literal["dense_vecs", "lexical_weights", "colbert_vecs"], Any]:
         if not sentences:
             return {
                 "dense_vecs": None,
@@ -32,10 +32,32 @@ class BGEM3:
                 "colbert_vecs":None
             }
 
-        if cls.MODEL is None:
-            cls.startup()
+        # startup model
+        cls.startup(
+            model_name_or_path = kwargs.get("model_name_or_path", None),
+            device = kwargs.get("device", None),
+            batch_size = batch_size,
+            normalize_embeddings = normalize_embeddings,
+            return_dense = return_dense,
+            return_sparse = return_sparse,
+            return_colbert_vecs = return_colbert_vecs,
+        )
+        if cls.model is None:
+            return {
+                "dense_vecs": None,
+                "lexical_weights": None,
+                "colbert_vecs":None
+            }
 
-    return {}
+        # encoding
+        return cls.model.encode(
+            [sentences] if not isinstance(sentences, list) else sentences,
+            batch_size = batch_size,
+            return_dense = return_dense,
+            return_sparse = return_sparse,
+            return_colbert_vecs = return_colbert_vecs,
+        )
+
 
     @classmethod
     def startup(
@@ -48,94 +70,107 @@ class BGEM3:
         return_sparse: bool|None=None,
         return_colbert_vecs: bool|None=None,
     ):
-        cls.MODEL_NAME_OR_PATH = (
+        if cls.model is not None:
+            return
+
+        _model_name_or_path = (
             model_name_or_path if model_name_or_path else
             conf.env.model_home + "/" + conf.embedding.bge_name
         )
-        cls.DEVICE = device or conf.env.device
-        cls.BATCH_SIZE = batch_size or conf.embedding.batch_size
-        cls.NORMALIZE_EMBEDDINGS = (
+        _device = device or conf.env.device
+        _batch_size = batch_size or conf.embedding.batch_size
+        _normalize_embeddings = (
             normalize_embeddings
             if normalize_embeddings is not None
             else True
         )
-        cls.RETURN_DENSE = return_dense if return_dense is not None else True
-        cls.RETURN_SPARSE = (
+        _return_dense = return_dense if return_dense is not None else True
+        _return_sparse = (
             return_sparse
             if return_sparse is not None
             else True
         )
-        cls.RETURN_COLBERT_VECS = (
+        _return_colbert_vecs = (
             return_colbert_vecs
             if return_colbert_vecs is not None
             else False
         )
         if (
-            not cls.RETURN_DENSE and
-            not cls.RETURN_SPARSE and
-            not cls.RETURN_COLBERT_VECS
+            not _return_dense and
+            not _return_sparse and
+            not _return_colbert_vecs
         ):
-            cls.RETURN_DENSE = True
+            _return_dense = True
+            _return_sparse = True
 
-        cls.MODEL = cls.MODEL_NAME_OR_PATH # HACK
+        from FlagEmbedding import BGEM3FlagModel
 
-        print(f"model '{cls.MODEL_NAME_OR_PATH}' startup")
+        try:
+            cls.model = BGEM3FlagModel(
+                _model_name_or_path,
+                normalize_embeddings = _normalize_embeddings,
+                use_fp16 = False,
+                devices = _device,
+                batch_size = _batch_size,
+                return_dense = _return_dense,
+                return_sparse = _return_sparse,
+                return_colbert_vecs = _return_colbert_vecs,
+            )
+            logger.info(f"{_model_name_or_path} loaded.")
+        except Exception as e:
+            logger.error(f"Loading {_model_name_or_path} failed: {e}")
+            cls.model = None
+            return
+
+        try:
+            _ = cls.model.encode("hello")
+            logger.info(f"{_model_name_or_path} warmed-up")
+        except Exception as e:
+            logger.error(f"Warming-up {_model_name_or_path} failed: {e}")
+            cls.model = None
+            return
 
 def ef(
     sentences: str|list[str],
+    batch_size: int|None=None,
     normalize_embeddings: bool|None=None,
     return_dense: bool|None=None,
     return_sparse: bool|None=None,
     return_colbert_vecs: bool|None=None,
-):
-    BGEM3.encode(
+    **kwargs,
+)-> dict[Literal["dense_vecs", "lexical_weights", "colbert_vecs"], Any]:
+    """
+    Encode sentences using BGEM3 model. Automatically initializes and warm-up
+    the model if not already done.
+
+    A single sentence will be converted to a list internally and the resulting
+    embeddings will be in the same format.
+
+    Args:
+        sentences (str | list[str]):
+            A single sentence or a list of sentences to encode.
+        batch_size (int | None): batch size for encoding. Default is None.
+        normalize_embeddings (bool | None):
+            Whether to normalize the embeddings. Default is None.
+        return_dense (bool | None):
+            Whether to return dense embeddings. Default is None.
+        return_sparse (bool | None):
+            Whether to return sparse embeddings. Default is None.
+        return_colbert_vecs (bool | None):
+            Whether to return ColBERT vectors. Default is None.
+        kwargs: Additional keyword arguments for model configuration includes:
+            model_name_or_path: str, path to the model.
+            device: str, device to run the model on.
+    Returns:
+        dict: A dictionary containing the encoded embeddings.
+    """
+    return BGEM3.encode(
         sentences,
+        batch_size,
         normalize_embeddings,
         return_dense,
         return_sparse,
         return_colbert_vecs,
+        **kwargs,
     )
-
-def startup():
-    pass
-
-#     @classmethod
-#     def invoke(
-#         cls,
-#         sentences: str|list[str],
-#         batch_size=16,
-#         device=None,
-#         return_dense=True,
-#         return_sparse=True,
-#         return_colbert_vecs=False,
-#     ):
-#         if cls.model is None:
-#             cls.model = BGEM3EmbeddingFunction(
-#                 model_name=os.environ["MODEL_HOME"] + "/BAAI/bge-m3",
-#                 use_fp16=False,
-#                 device=device or os.environ["LOCAL_DEVICE"],
-#                 batch_size=batch_size,
-#                 return_dense=return_dense,
-#                 return_sparse=return_sparse,
-#                 return_colbert_vecs=return_colbert_vecs,
-#             )
-#         return cls.model(texts if isinstance(texts, list) else [texts])
-
-# def bge_m3_ef(
-#     texts,
-#     device=None,
-#     batch_size=16,
-#     return_dense=True,
-#     return_sparse=True,
-#     return_colbert_vecs=False,
-# ):
-#     return BGEM3_MILVUS.invoke(
-#         texts,
-#         device,
-#         batch_size,
-#         return_dense,
-#         return_sparse,
-#         return_colbert_vecs,
-#     )
-
 

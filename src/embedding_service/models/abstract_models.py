@@ -8,17 +8,13 @@
 from abc import ABC, abstractmethod
 
 class AbstractEmbedder(ABC):
-    MODEL_NAME_OR_PATH: str
-    DEVICE: str
-    BATCH_SIZE: int
-    NORMALIZE_EMBEDDINGS: bool
-
     @classmethod
     @abstractmethod
     def encode(
         cls,
         sentences: str|list[str],
         normalize_embeddings: bool|None,
+        batch_size: int|None,
     ):
         pass
 
@@ -31,7 +27,7 @@ class AbstractEmbedder(ABC):
         batch_size: int|None,
         normalize_embeddings: bool|None,
     ):
-        """Initialize, load into cpu/gpu and warm-up model"""
+        """Initialize, load and warm-up model"""
         pass
 
 class AbstractReranker(ABC):

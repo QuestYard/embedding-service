@@ -26,9 +26,10 @@ with open(Path.cwd() / "embedding-service.yaml", "r", encoding="utf-8") as f:
 from .utilities import dict_to_namespace
 conf = dict_to_namespace(conf or {})
 conf.env.device = conf.env.device or "cpu"
-conf.embedding.mode = conf.embedding.mode or "bge"
+conf.embedding.dense_model = conf.embedding.dense_model or "bge"
+conf.embedding.sparse_model = conf.embedding.sparse_model or "bge"
 conf.embedding.batch_size = conf.embedding.batch_size or 16
-conf.reranker.mode = conf.reranker.mode or "bge"
+conf.reranker.model = conf.reranker.model or "bge"
 conf.reranker.batch_size = conf.reranker.batch_size or 4
 
 import logging
