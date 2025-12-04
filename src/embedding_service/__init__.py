@@ -1,7 +1,7 @@
 #*********************************************************************
 # Author           : Libin
 # Company          : huz.zj.yc
-# Last modified    : 2025-12-03 08:20
+# Last modified    : 2025-12-04 20:48
 # Filename         : __init__.py
 # Project          : HuRAG/embedding-service
 #*********************************************************************
@@ -31,6 +31,8 @@ conf.embedding.sparse_model = conf.embedding.sparse_model or "bge"
 conf.embedding.batch_size = conf.embedding.batch_size or 16
 conf.reranker.model = conf.reranker.model or "bge"
 conf.reranker.batch_size = conf.reranker.batch_size or 4
+conf.service.host = conf.service.host or "0.0.0.0"
+conf.service.port = conf.service.port or 8765
 
 import logging
 import logging.handlers

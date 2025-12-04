@@ -2,14 +2,13 @@
 # Author           : Libin
 # Company          : huz.zj.yc
 # Last modified    : 2025-12-03 23:28
-# Filename         : bge_m3.py
+# Filename         : models/bge_m3.py
 # Project          : HuRAG/embedding-service
 #*********************************************************************
 from .. import conf, logger
-from .abstract_models import AbstractEmbedder, AbstractReranker
+from .abstract_models import AbstractEmbedder
 
 from typing import Literal, Any
-# from FlagEmbedding import BGEM3FlagModel
 
 class BGEM3(AbstractEmbedder):
     model = None

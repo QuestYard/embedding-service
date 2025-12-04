@@ -2,7 +2,7 @@
 # Author           : Libin
 # Company          : huz.zj.yc
 # Last modified    : 2025-12-03 14:59
-# Filename         : abstract_models.py
+# Filename         : models/abstract_models.py
 # Project          : HuRAG/embedding-service
 #*********************************************************************
 from abc import ABC, abstractmethod
