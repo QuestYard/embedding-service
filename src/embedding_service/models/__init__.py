@@ -6,8 +6,10 @@
 # Project          : HuRAG/embedding-service
 #*********************************************************************
 from .bge_m3 import ef as bge_m3_ef
+from .qwen3_embedding import ef as qwen3_ef
 
 __all__ = [
     "bge_m3_ef",
+    "qwen3_ef",
 ]
 
