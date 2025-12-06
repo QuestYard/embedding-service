@@ -52,11 +52,52 @@
 
 ```bash
 git clone https://github.com/QuestYard/embedding-service.git <src-dir>
+```
+
+**torch源配置**
+
+仓库源代码 `pyproject.toml` 中是根据项目开发环境配置的 `torch` 源。将仓库克隆到本地后，首先需要根据本地服务器的软硬件配置修改。
+
+```bash
 cd <src-dir>
+# 修改 pyproject.toml 中 torch 的 sources
+vim pyproject.toml
+```
+
+需要修改的配置项如下：
+
+```toml
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", marker = "sys_platform == 'linux'" },
+    { index = "pytorch-cu130", marker = "sys_platform == 'win32'" },
+]
+```
+
+根据本地服务器的硬件配置，通过 `marker` 精确定义本地软硬件环境，从而指定需要使用的 `pytorch` 类型。
+
+严格遵循 PEP 和 uv 配置的规范编写 `marker` 约束，规范依据：
+
+- [Using uv with PyTorch](https://docs.astral.sh/uv/guides/integration/pytorch/)
+- [PEP 508 – Dependency specification for Python Software Packages](https://peps.python.org/pep-0508/)
+- [Dependency specifiers](https://packaging.python.org/en/latest/specifications/dependency-specifiers/)
+
+**同步环境**
+
+配置修改完成后，同步 uv 环境即可完成本地安装。
+
+```bash
+# 若不使用 --no-dev 参数，将额外安装 jupyter 和 matplotlib 两个开发依赖
 uv sync --no-dev
 ```
 
-### Instance Setup
+### As a Usage of SDK package 
+
+...
+
+### As a Usage of Micro-Service
+
+#### Instance Setup
 
 **创建服务实例目录**
 

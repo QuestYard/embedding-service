@@ -1,14 +1,23 @@
 #*********************************************************************
 # Author           : Libin
 # Company          : huz.zj.yc
-# Last modified    : 2025-12-03 23:28
-# Filename         : models/bge_m3.py
+# Last modified    : 2025-12-06 23:36
+# Filename         : bge_m3.py
 # Project          : HuRAG/embedding-service
 #*********************************************************************
+from __future__ import annotations
+from typing import TypedDict, TYPE_CHECKING
+
 from .. import conf, logger
 from .abstract_models import AbstractEmbedder
 
-from typing import Literal, Any
+if TYPE_CHECKING:
+    import numpy
+
+class VectorDict(TypedDict):
+    dense_vecs: numpy.ndarray | None
+    lexical_weights: list[dict[str, float]] | None
+    colbert_vecs: list[numpy.ndarray] | None
 
 class BGEM3(AbstractEmbedder):
     model = None
@@ -23,7 +32,7 @@ class BGEM3(AbstractEmbedder):
         return_sparse: bool|None,
         return_colbert_vecs: bool|None,
         **kwargs,
-    )-> dict[Literal["dense_vecs", "lexical_weights", "colbert_vecs"], Any]:
+    )-> VectorDict:
         if not sentences:
             return {
                 "dense_vecs": None,
@@ -56,7 +65,6 @@ class BGEM3(AbstractEmbedder):
             return_sparse = return_sparse,
             return_colbert_vecs = return_colbert_vecs,
         )
-
 
     @classmethod
     def startup(
@@ -129,6 +137,12 @@ class BGEM3(AbstractEmbedder):
             cls.model = None
             return
 
+    @classmethod
+    def shutdown(cls):
+        if cls.model is not None:
+            cls.model = None
+            logger.info("BGEM3 model shutdown.")
+
 def ef(
     sentences: str|list[str],
     batch_size: int|None=None,
@@ -137,7 +151,7 @@ def ef(
     return_sparse: bool|None=None,
     return_colbert_vecs: bool|None=None,
     **kwargs,
-)-> dict[Literal["dense_vecs", "lexical_weights", "colbert_vecs"], Any]:
+)-> VectorDict:
     """
     Encode sentences using BGEM3 model. Automatically initializes and warm-up
     the model if not already done.
@@ -162,6 +176,12 @@ def ef(
             device: str, device to run the model on.
     Returns:
         dict: A dictionary containing the encoded embeddings.
+            Let n be the number of sentences, the returned dict will be:
+            {
+                "dense_vecs": np.ndarray[(n, 1024), float32],
+                "lexical_weights": list[defaultdict[str, float32], len=n],
+                "colbert_vecs": list[np.ndarray[(x, 1024), float32], len=n],
+            }
     """
     return BGEM3.encode(
         sentences,
@@ -173,3 +193,8 @@ def ef(
         **kwargs,
     )
 
+def shutdown():
+    """
+    Shutdown the BGEM3 model to free up resources.
+    """
+    BGEM3.shutdown()

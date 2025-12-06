@@ -1,14 +1,21 @@
 #*********************************************************************
 # Author           : Libin
 # Company          : huz.zj.yc
-# Last modified    : 2025-12-04 20:50
-# Filename         : models/qwen3_embedding.py
+# Last modified    : 2025-12-06 23:36
+# Filename         : qwen3_embedding.py
 # Project          : HuRAG/embedding-service
 #*********************************************************************
+from __future__ import annotations
+from typing import TypedDict, TYPE_CHECKING
+
 from .. import conf, logger
 from .abstract_models import AbstractEmbedder
 
-from typing import Literal, Any
+if TYPE_CHECKING:
+    import numpy
+
+class VectorDict(TypedDict):
+    dense_vecs: numpy.ndarray | None
 
 class Qwen3Embedding(AbstractEmbedder):
     model = None
@@ -18,34 +25,26 @@ class Qwen3Embedding(AbstractEmbedder):
         cls,
         sentences: str|list[str],
         batch_size: int|None,
-        normalize_embeddings: bool|None,
         **kwargs,
-    )-> dict[Literal["dense_vecs", "lexical_weights", "colbert_vecs"], Any]:
+    )-> VectorDict:
         if not sentences:
-            return {
-                "dense_vecs": None,
-                "lexical_weights": None,
-                "colbert_vecs":None
-            }
+            return { "dense_vecs": None }
 
         # startup model
         cls.startup(
             model_name_or_path = kwargs.get("model_name_or_path", None),
             device = kwargs.get("device", None),
-            batch_size = batch_size,
-            normalize_embeddings = normalize_embeddings,
         )
         if cls.model is None:
-            return {
-                "dense_vecs": None,
-                "lexical_weights": None,
-                "colbert_vecs":None
-            }
+            return { "dense_vecs": None }
 
         # encoding
+        _batch_size = batch_size or conf.embedding.batch_size
         return cls.model.encode(
             [sentences] if not isinstance(sentences, list) else sentences,
-            batch_size = batch_size,
+            batch_size = _batch_size,
+            convert_to_numpy=True,
+            convert_to_tensor=False,
         )
 
     @classmethod
@@ -53,8 +52,6 @@ class Qwen3Embedding(AbstractEmbedder):
         cls,
         model_name_or_path: str|None=None,
         device: str|None=None,
-        batch_size: int|None=None,
-        normalize_embeddings: bool|None=None,
     ):
         if cls.model is not None:
             return
@@ -64,23 +61,13 @@ class Qwen3Embedding(AbstractEmbedder):
             conf.env.model_home + "/" + conf.embedding.qwen3_name
         )
         _device = device or conf.env.device
-        _batch_size = batch_size or conf.embedding.batch_size
-        _normalize_embeddings = (
-            normalize_embeddings
-            if normalize_embeddings is not None
-            else True
-        )
 
         from sentence_transformers import SentenceTransformer
 
-# --- TODO: breakpoint 1204 ---
         try:
             cls.model = SentenceTransformer(
                 _model_name_or_path,
-                normalize_embeddings = _normalize_embeddings,
-                use_fp16 = False,
-                devices = _device,
-                batch_size = _batch_size,
+                device = _device,
             )
             logger.info(f"{_model_name_or_path} loaded.")
         except Exception as e:
@@ -96,55 +83,46 @@ class Qwen3Embedding(AbstractEmbedder):
             cls.model = None
             return
 
+    @classmethod
+    def shutdown(cls):
+        if cls.model is not None:
+            cls.model = None
+            logger.info("Qwen3Embedding model shutdown.")
+
 def ef(
     sentences: str|list[str],
     batch_size: int|None=None,
-    normalize_embeddings: bool|None=None,
     **kwargs,
-):
-    pass
+)-> VectorDict:
+    """
+    Encode sentences using Qwen3-Embedding model. Automatically initializes and
+    warm-up the model if not already done.
 
-# def ef(
-#     sentences: str|list[str],
-#     batch_size: int|None=None,
-#     normalize_embeddings: bool|None=None,
-#     return_dense: bool|None=None,
-#     return_sparse: bool|None=None,
-#     return_colbert_vecs: bool|None=None,
-#     **kwargs,
-# )-> dict[Literal["dense_vecs", "lexical_weights", "colbert_vecs"], Any]:
-#     """
-#     Encode sentences using BGEM3 model. Automatically initializes and warm-up
-#     the model if not already done.
-# 
-#     A single sentence will be converted to a list internally and the resulting
-#     embeddings will be in the same format.
-# 
-#     Args:
-#         sentences (str | list[str]):
-#             A single sentence or a list of sentences to encode.
-#         batch_size (int | None): batch size for encoding. Default is None.
-#         normalize_embeddings (bool | None):
-#             Whether to normalize the embeddings. Default is None.
-#         return_dense (bool | None):
-#             Whether to return dense embeddings. Default is None.
-#         return_sparse (bool | None):
-#             Whether to return sparse embeddings. Default is None.
-#         return_colbert_vecs (bool | None):
-#             Whether to return ColBERT vectors. Default is None.
-#         kwargs: Additional keyword arguments for model configuration includes:
-#             model_name_or_path: str, path to the model.
-#             device: str, device to run the model on.
-#     Returns:
-#         dict: A dictionary containing the encoded embeddings.
-#     """
-#     return BGEM3.encode(
-#         sentences,
-#         batch_size,
-#         normalize_embeddings,
-#         return_dense,
-#         return_sparse,
-#         return_colbert_vecs,
-#         **kwargs,
-#     )
+    A single sentence will be converted to a list internally and the resulting
+    embeddings will be in the same format.
 
+    Qwen3-Embedding models are restricted to output normalized embeddings.
+
+    Args:
+        sentences (str | list[str]):
+            A single sentence or a list of sentences to encode.
+        batch_size (int | None): batch size for encoding. Default is None.
+        kwargs: Additional keyword arguments for model configuration includes:
+            model_name_or_path: str, path to the model.
+            device: str, device to run the model on.
+    Returns:
+        dict: A dictionary containing the encoded embeddings.
+            Let n be the number of sentences, the returned dict will be:
+            { "dense_vecs": np.ndarray[(n, 1024), float32] }
+    """
+    return Qwen3Embedding.encode(
+        sentences,
+        batch_size,
+        **kwargs,
+    )
+
+def shutdown():
+    """
+    Shutdown the Qwen3Embedding model to free up resources.
+    """
+    Qwen3Embedding.shutdown()
