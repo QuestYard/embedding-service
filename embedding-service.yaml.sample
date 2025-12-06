@@ -1,5 +1,5 @@
 env:            # SERVER ENVIRONMENT
-  device:       # cpu (default) or cuda
+  device:       # cpu, cuda:x, or None (automatically choose by model)
   model_home:   # /path/to/model_home, e.g. /home/user/.cache/modelscope/hub/models
 embedding:      # EMBEDDING MODEL CONFIGURATIONS
   dense_model:  # bge (default) or qwen3
