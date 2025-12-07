@@ -5,58 +5,59 @@ from .. import conf, logger
 from .abstract_models import AbstractEmbedder
 
 if TYPE_CHECKING:
-    import numpy
+    from torch import Tensor
 
 class VectorDict(TypedDict):
-    dense_vecs: numpy.ndarray | None
+    lexical_weights: Tensor | None
 
-class Qwen3Embedding(AbstractEmbedder):
+class Splade_v3(AbstractEmbedder):
     _model = None
 
     @classmethod
     def encode(
         cls,
-        sentences: str|list[str],
-        batch_size: int|None=None,
+        sentences: str | list[str],
+        batch_size: int | None=None,
     )-> VectorDict:
         """
-        Encode sentences using Qwen3-Embedding-?B model. The size '?B' is
-        determined by the configuration. Ensures the model is started up before
-        encoding, otherwise returns None for all embeddings.
+        Encode sentences using Splade_v3 model. Ensures the model is started up
+        before encoding, otherwise returns None for all embeddings.
 
         A single sentence will be converted to a list internally. Empty input
         will return None for all embeddings.
-
-        Qwen3-Embedding-?B models only provide normalized dense embeddings.
 
         Args:
             sentences (str | list[str]):
                 A single sentence or a list of sentences to encode.
             batch_size (int | None):
                 The batch size for encoding. Default is None, leading to use the
-                batch size set in configuration.
+                batch size set during startup.
 
         Returns:
             dict: A dictionary containing the encoded embeddings.
                 Let n be the number of sentences, the returned dict will be:
-                { "dense_vecs": np.ndarray[(n, 1024), float32] }
+                {
+                    "lexical_weights": Tensor[(n, 30522), sparse_coo],
+                }
         """
         if not sentences:
             logger.warning("No sentences provided for encoding.")
-            return { "dense_vecs": None }
+            return {
+                "lexical_weights": None,
+            }
         if cls._model is None:
-            logger.warning("Model is not started.")
-            return { "dense_vecs": None }
-
+            logger.error("Model is not started.")
+            return {
+                "lexical_weights": None,
+            }
         # encoding
-        _batch_size = batch_size or conf.embedding.batch_size or 16
-        embeddings = cls._model.encode(
+        lexical_weights = cls._model.encode(
             [sentences] if not isinstance(sentences, list) else sentences,
-            batch_size = _batch_size,
-            convert_to_numpy=True,
-            convert_to_tensor=False,
+            batch_size=batch_size or conf.embedding.batch_size or 16,
         )
-        return { "dense_vecs": embeddings }
+        return {
+            "lexical_weights": lexical_weights,
+        }
 
     @classmethod
     def startup(
@@ -65,11 +66,12 @@ class Qwen3Embedding(AbstractEmbedder):
         device: str | None=None,
     )-> None:
         """
-        Initialize the Qwen3-Embedding model if not already initialized.
-        
+        Startup the Splade_v3 model.
+
         Args:
             model_name_or_path (str | None):
-                Path to the model. If None, uses default from config.
+                The model name or path. Default is None, leading to use the
+                model name set in configuration.
             device (str | None):
                 Device to run the model on. If None, uses default from config.
         """
@@ -78,13 +80,13 @@ class Qwen3Embedding(AbstractEmbedder):
 
         _model_name_or_path = (
             model_name_or_path if model_name_or_path else
-            conf.env.model_home + "/" + conf.embedding.qwen3_name
+            conf.env.model_home + "/" + conf.embedding.splade_name
         )
 
-        from sentence_transformers import SentenceTransformer
+        from sentence_transformers import SparseEncoder
 
         try:
-            cls._model = SentenceTransformer(
+            cls._model = SparseEncoder(
                 _model_name_or_path,
                 device = device or conf.env.device,
             )
@@ -106,4 +108,4 @@ class Qwen3Embedding(AbstractEmbedder):
     def shutdown(cls)-> None:
         if cls._model is not None:
             cls._model = None
-            logger.info("Qwen3Embedding model shutdown.")
+            logger.info("Splade_v3 model shutdown.")

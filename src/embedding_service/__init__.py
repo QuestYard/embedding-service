@@ -1,10 +1,3 @@
-#*********************************************************************
-# Author           : Libin
-# Company          : huz.zj.yc
-# Last modified    : 2025-12-06 19:04
-# Filename         : __init__.py
-# Project          : HuRAG/embedding-service
-#*********************************************************************
 __version__ = "0.1.0"
 __author__ = "Libin, QuestYard HuRAG Team"
 __description__ = "SDK and API for embedding and reranker models"

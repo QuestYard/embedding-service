@@ -1,11 +1,3 @@
-#*********************************************************************
-# Author           : Libin
-# Company          : huz.zj.yc
-# Last modified    : 2025-12-03 10:40
-# Filename         : utilities.py
-# Project          : HuRAG/embedding-service
-#*********************************************************************
-
 def dict_to_namespace(data):
     """
     Recursively converts a dictionary (and nested dicts/lists of dicts)

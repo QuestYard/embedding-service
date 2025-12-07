@@ -1,20 +1,17 @@
-#*********************************************************************
-# Author           : Libin
-# Company          : huz.zj.yc
-# Last modified    : 2025-12-03 14:59
-# Filename         : models/abstract_models.py
-# Project          : HuRAG/embedding-service
-#*********************************************************************
 from abc import ABC, abstractmethod
 
 class AbstractEmbedder(ABC):
+    def __init__(self):
+        raise TypeError(
+            "Embedders cannot be instantiated. Use Cls.startup() instead."
+        )
+
     @classmethod
     @abstractmethod
     def encode(
         cls,
-        sentences: str|list[str],
-        normalize_embeddings: bool|None,
-        batch_size: int|None,
+        sentences: str | list[str],
+        batch_size: int | None,
     ):
         pass
 
@@ -22,14 +19,22 @@ class AbstractEmbedder(ABC):
     @abstractmethod
     def startup(
         cls,
-        model_name_or_path: str,
-        device: str|None,
-        batch_size: int|None,
-        normalize_embeddings: bool|None,
+        model_name_or_path: str | None,
+        device: str | None,
     ):
-        """Initialize, load and warm-up model"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def shutdown(cls):
+        """Release model resources"""
         pass
 
 class AbstractReranker(ABC):
+    def __init__(self):
+        raise TypeError(
+            "Rerankers cannot be instantiated. Use Cls.startup() instead."
+        )
+
     pass
 

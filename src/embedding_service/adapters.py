@@ -1,0 +1,1 @@
+# --- Adapters for Milvus vector database ---
