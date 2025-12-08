@@ -91,11 +91,17 @@ torch = [
 uv sync --no-dev
 ```
 
-### As a Usage of SDK package 
+### As an SDK package
 
-...
+`embedding-service` 也可以作为一个 SDK 包被其他项目引用和使用。
 
-### As a Usage of Micro-Service
+建议采用 uv 进行项目管理，运行命令 `uv add -e /path/to/embedding-service` 进行可编辑安装。采用 pip 管理的项目，可以通过 `pip install -e /path/to/embedding-service` 命令进行安装。目前尚不支持 PyPI 发布。
+
+*作为一个 SDK 包使用时，必须在项目工作目录下提供 `embedding-service.yaml` 配置文件。*
+
+### As a Micro-Service
+
+TODO *constructing...*
 
 #### Instance Setup
 
@@ -110,7 +116,7 @@ cp <src-dir>/startup.sh .
 
 **配置服务**
 
-修改工作目录下的配置文件 `embedding-service.yaml` ：
+在项目工作目录下提供配置文件 `embedding-service.yaml` 如下：
 
 ```yaml
 env:            # SERVER ENVIRONMENT
@@ -141,4 +147,3 @@ service:        # MICRO-SERVICE CONFIGURATIONS
 cd <working-dir>
 ./startup.sh
 ```
-

@@ -36,5 +36,6 @@ class AbstractReranker(ABC):
             "Rerankers cannot be instantiated. Use Cls.startup() instead."
         )
 
+    # TODO: define startup, rerank, and shutdown methods for rerankers
     pass
 
