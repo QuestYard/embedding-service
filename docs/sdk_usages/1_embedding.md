@@ -29,27 +29,7 @@ BGE-M3 模型支持三种向量化方式，分别为密集向量、稀疏向量�
 
 在使用前准备好配置文件和测试数据，配置文件名为 `embedding-service.yaml`，需要放置在当前工作目录下：
 
-```toml
-# embedding-service.yaml 示例配置文件
-env:            # SERVER ENVIRONMENT
-  device:       # cpu, cuda:x, or None (automatically choose by model)
-  model_home:   d:/projects/py_ai/.cache/models
-embedding:      # EMBEDDING MODEL CONFIGURATIONS
-  dense_model:  # 用作 SDK 库时无需配置
-  sparse_model: # 用作 SDK 库时无需配置
-  bge_name:     BAAI/bge-m3
-  qwen3_name:   Qwen/Qwen3-Embedding-0___6B
-  splade_name:  naver/splade-v3
-  batch_size:   # >=4 (default 16)
-reranker:       # RERANKER MODEL CONFIGURATIONS
-  model:        # 用作 SDK 库时无需配置
-  bge_name:     BAAI/bge-reranker-v2-m3
-  qwen3_name:   Qwen/Qwen3-Reranker-0___6B
-  batch_size:   # >=4 (default 4)
-service:        # MICRO-SERVICE CONFIGURATIONS
-  host:         # 用作 SDK 库时无需配置
-  port:         # 用作 SDK 库时无需配置
-```
+[embedding-service.yaml 示例配置文件](./embedding-service.yaml)。
 
 ```python
 # 测试数据
