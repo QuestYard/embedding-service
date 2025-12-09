@@ -23,6 +23,7 @@ class BGEM3(AbstractEmbedder):
         return_dense: bool | None=None,
         return_sparse: bool | None=None,
         return_colbert_vecs: bool | None=None,
+        instruction: str | None=None,
         **kwargs,
     )-> VectorDict:
         """
@@ -40,6 +41,8 @@ class BGEM3(AbstractEmbedder):
                 A single sentence or a list of sentences to encode.
             batch_size (int | None):
                 The batch size for encoding.
+            instruction (str | None):
+                The embed instruction for queries, NOT for documents.
             return_dense (bool | None):
                 Whether to return dense embeddings.
             return_sparse (bool | None):
@@ -77,6 +80,8 @@ class BGEM3(AbstractEmbedder):
             return_dense = return_dense,
             return_sparse = return_sparse,
             return_colbert_vecs = return_colbert_vecs,
+            instruction = instruction,
+            instruction_format = "{}{}" if instruction else None,
         )
 
     @classmethod

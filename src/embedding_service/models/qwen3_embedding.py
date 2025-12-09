@@ -18,6 +18,7 @@ class Qwen3Embedding(AbstractEmbedder):
         cls,
         sentences: str | list[str],
         batch_size: int=32,
+        instruction: str | None=None,
         **kwargs,
     )-> VectorDict:
         """
@@ -36,6 +37,8 @@ class Qwen3Embedding(AbstractEmbedder):
                 A single sentence or a list of sentences to encode.
             batch_size (int | None):
                 The batch size for encoding. Default is 32.
+            instruction (str | None):
+                The embed instruction for queries, NOT for documents.
 
         Returns:
             dict: A dictionary containing the encoded embeddings.
@@ -52,7 +55,8 @@ class Qwen3Embedding(AbstractEmbedder):
         # encoding
         embeddings = cls._model.encode(
             [sentences] if not isinstance(sentences, list) else sentences,
-            batch_size = batch_size,
+            batch_size=batch_size,
+            prompt=instruction,
             convert_to_numpy=True,
             convert_to_tensor=False,
         )
