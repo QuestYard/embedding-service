@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TypedDict, TYPE_CHECKING
 
-from .. import conf, logger
+from .. import logger
 from .abstract_models import AbstractEmbedder
 
 if TYPE_CHECKING:
@@ -23,6 +23,7 @@ class BGEM3(AbstractEmbedder):
         return_dense: bool | None=None,
         return_sparse: bool | None=None,
         return_colbert_vecs: bool | None=None,
+        **kwargs,
     )-> VectorDict:
         """
         Encode sentences using BGEM3 model. Ensures the model is started up
@@ -31,26 +32,28 @@ class BGEM3(AbstractEmbedder):
         A single sentence will be converted to a list internally. Empty input
         will return None for all embeddings.
 
+        Every optional argument gets None as default, which leads to use the
+        value set during startup.
+
         Args:
             sentences (str | list[str]):
                 A single sentence or a list of sentences to encode.
             batch_size (int | None):
-                The batch size for encoding. Default is None, leading to use the
-                batch size set during startup.
+                The batch size for encoding.
             return_dense (bool | None):
-                Whether to return dense embeddings. Default is None.
+                Whether to return dense embeddings.
             return_sparse (bool | None):
-                Whether to return sparse embeddings. Default is None.
+                Whether to return sparse embeddings.
             return_colbert_vecs (bool | None):
-                Whether to return ColBERT vectors. Default is None.
+                Whether to return ColBERT vectors.
 
         Returns:
             dict: A dictionary containing the encoded embeddings.
                 Let n be the number of sentences, the returned dict will be:
                 {
-                    "dense_vecs": np.ndarray[(n, 1024), float32],
+                    "dense_vecs": np.ndarray[(n,1024), float32],
                     "lexical_weights": list[defaultdict[str, float32], len=n],
-                    "colbert_vecs": list[np.ndarray[(x, 1024), float32], len=n],
+                    "colbert_vecs": list[np.ndarray[(x,1024), float32], len=n],
                 }
         """
         if not sentences:
@@ -79,13 +82,14 @@ class BGEM3(AbstractEmbedder):
     @classmethod
     def startup(
         cls,
-        model_name_or_path: str | None=None,
+        model_name_or_path: str,
         device: str | None=None,
-        batch_size: int=16,
+        batch_size: int=256,
         normalize_embeddings: bool=True,
         return_dense: bool=True,
         return_sparse: bool=False,
         return_colbert_vecs: bool=False,
+        **kwargs,
     )-> None:
         """
         Initialize, load and warm-up BGEM3 model.
@@ -101,11 +105,11 @@ class BGEM3(AbstractEmbedder):
         is a specific need for unnormalized embeddings.
 
         Args:
-            model_name_or_path (str | None):
-                Path to the model. If None, use default from config.
+            model_name_or_path (str):
+                Path to the model. None or empty will cause a ValueError.
             device (str | None):
-                Device to run the model on. If None, use default from config.
-            batch_size (int): batch size for encoding. Default is 16.
+                Device to run the model on.
+            batch_size (int): batch size for encoding. Default is 256.
             normalize_embeddings (bool):
                 Whether to normalize the embeddings. Default is True.
             return_dense (bool):
@@ -118,10 +122,9 @@ class BGEM3(AbstractEmbedder):
         if cls._model is not None:
             return
 
-        _model_name_or_path = (
-            model_name_or_path if model_name_or_path else
-            conf.env.model_home + "/" + conf.embedding.bge_name
-        )
+        if not model_name_or_path:
+            raise ValueError("model_name_or_path must be provided.")
+
         if not return_sparse and not return_colbert_vecs:
             return_dense = True
 
@@ -129,26 +132,26 @@ class BGEM3(AbstractEmbedder):
 
         try:
             cls._model = BGEM3FlagModel(
-                _model_name_or_path,
+                model_name_or_path.strip(),
                 normalize_embeddings = normalize_embeddings,
                 use_fp16 = False,
-                devices = device or conf.env.device,
-                batch_size = batch_size or conf.embedding.batch_size or 16,
+                devices = device,
+                batch_size = batch_size,
                 return_dense = return_dense,
                 return_sparse = return_sparse,
                 return_colbert_vecs = return_colbert_vecs,
             )
-            logger.info(f"{_model_name_or_path} loaded.")
+            logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
-            logger.error(f"Loading {_model_name_or_path} failed: {e}")
+            logger.error(f"Loading {model_name_or_path} failed: {e}")
             cls._model = None
             return
 
         try:
             _ = cls._model.encode("hello")
-            logger.info(f"{_model_name_or_path} warmed-up")
+            logger.info(f"{model_name_or_path} warmed-up")
         except Exception as e:
-            logger.error(f"Warming-up {_model_name_or_path} failed: {e}")
+            logger.error(f"Warming-up {model_name_or_path} failed: {e}")
             cls._model = None
             return
 

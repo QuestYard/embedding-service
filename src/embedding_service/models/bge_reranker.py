@@ -1,4 +1,4 @@
-from .. import conf, logger
+from .. import logger
 from .abstract_models import AbstractReranker
 
 class BGEReranker(AbstractReranker):
@@ -10,6 +10,7 @@ class BGEReranker(AbstractReranker):
         query: str,
         passages: list[str],
         batch_size: int | None=None,
+        **kwargs,
     )-> list[float]:
         """
         Rerank passages based on their relevance to the query using BGE model.

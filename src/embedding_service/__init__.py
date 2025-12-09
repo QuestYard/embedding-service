@@ -12,18 +12,20 @@ logger = None   # Global logger
 
 # -- Initialization --
 
-with open(Path.cwd() / "embedding-service.yaml", "r", encoding="utf-8") as f:
-    conf = yaml.safe_load(f)
-
 from .utilities import dict_to_namespace
-conf = dict_to_namespace(conf or {})
-conf.embedding.dense_model = conf.embedding.dense_model or "bge"
-conf.embedding.sparse_model = conf.embedding.sparse_model or "bge"
-conf.embedding.batch_size = conf.embedding.batch_size or 16
-conf.reranker.model = conf.reranker.model or "bge"
-conf.reranker.batch_size = conf.reranker.batch_size or 4
-conf.service.host = conf.service.host or "0.0.0.0"
-conf.service.port = conf.service.port or 8765
+try:
+    with open(Path.cwd() / "embedding-service.yaml", "r", encoding="utf-8") as f:
+        conf = yaml.safe_load(f)
+    conf = dict_to_namespace(conf) # or {})
+    conf.embedding.dense_model = conf.embedding.dense_model or "bge"
+    conf.embedding.sparse_model = conf.embedding.sparse_model or "bge"
+    conf.embedding.batch_size = conf.embedding.batch_size or 16
+    conf.reranker.model = conf.reranker.model or "bge"
+    conf.reranker.batch_size = conf.reranker.batch_size or 4
+    conf.service.host = conf.service.host or "0.0.0.0"
+    conf.service.port = conf.service.port or 8765
+except:
+    pass
 
 import logging
 import logging.handlers

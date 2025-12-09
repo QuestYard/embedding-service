@@ -97,7 +97,9 @@ uv sync --no-dev
 
 建议采用 uv 进行项目管理，运行命令 `uv add -e /path/to/embedding-service` 进行可编辑安装。采用 pip 管理的项目，可以通过 `pip install -e /path/to/embedding-service` 命令进行安装。目前尚不支持 PyPI 发布。
 
-*作为一个 SDK 包使用时，必须在项目工作目录下提供 `embedding-service.yaml` 配置文件。*
+*作为一个 SDK 包使用时，无需提供 `embedding-service.yaml` 配置文件。若提供配置文件，其中的配置信息不起作用，需要用户项目自行管理模型参数。*
+
+SDK 说明详见：[Embedding SDK 的使用方法](./docs/sdk_usages/1_embedding.md)
 
 ### As a Micro-Service
 
@@ -116,7 +118,7 @@ cp <src-dir>/startup.sh .
 
 **配置服务**
 
-在项目工作目录下提供配置文件 `embedding-service.yaml` 如下：
+作为微服务时，必须在项目工作目录下提供配置文件 `embedding-service.yaml` 如下：
 
 ```yaml
 env:            # SERVER ENVIRONMENT
@@ -143,7 +145,4 @@ service:        # MICRO-SERVICE CONFIGURATIONS
 
 配置完成后，进入工作目录执行启动脚本即可启动服务。
 
-```bash
-cd <working-dir>
-./startup.sh
-```
+TODO *constructing...*

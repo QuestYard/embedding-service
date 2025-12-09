@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 class AbstractEmbedder(ABC):
     def __init__(self):
         raise TypeError(
-            "Embedders cannot be instantiated. Use Cls.startup() instead."
+            "Embedders cannot be instantiated. Use CLS.startup() instead."
         )
 
     @classmethod
@@ -12,6 +12,7 @@ class AbstractEmbedder(ABC):
         cls,
         sentences: str | list[str],
         batch_size: int | None,
+        **kwargs,
     ):
         pass
 
@@ -19,8 +20,9 @@ class AbstractEmbedder(ABC):
     @abstractmethod
     def startup(
         cls,
-        model_name_or_path: str | None,
+        model_name_or_path: str,
         device: str | None,
+        **kwargs,
     ):
         pass
 
@@ -33,7 +35,7 @@ class AbstractEmbedder(ABC):
 class AbstractReranker(ABC):
     def __init__(self):
         raise TypeError(
-            "Rerankers cannot be instantiated. Use Cls.startup() instead."
+            "Rerankers cannot be instantiated. Use CLS.startup() instead."
         )
 
     # TODO: define startup, rerank, and shutdown methods for rerankers

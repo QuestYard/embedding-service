@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TypedDict, TYPE_CHECKING
 
-from .. import conf, logger
+from .. import logger
 from .abstract_models import AbstractEmbedder
 
 if TYPE_CHECKING:
@@ -17,7 +17,8 @@ class Splade_v3(AbstractEmbedder):
     def encode(
         cls,
         sentences: str | list[str],
-        batch_size: int | None=None,
+        batch_size: int=32,
+        **kwargs,
     )-> VectorDict:
         """
         Encode sentences using Splade_v3 model. Ensures the model is started up
@@ -30,8 +31,7 @@ class Splade_v3(AbstractEmbedder):
             sentences (str | list[str]):
                 A single sentence or a list of sentences to encode.
             batch_size (int | None):
-                The batch size for encoding. Default is None, leading to use the
-                batch size set during startup.
+                The batch size for encoding. Default is 32.
 
         Returns:
             dict: A dictionary containing the encoded embeddings.
@@ -53,54 +53,50 @@ class Splade_v3(AbstractEmbedder):
         # encoding
         lexical_weights = cls._model.encode(
             [sentences] if not isinstance(sentences, list) else sentences,
-            batch_size=batch_size or conf.embedding.batch_size or 16,
+            batch_size=batch_size,
         )
-        return {
-            "lexical_weights": lexical_weights,
-        }
+        return { "lexical_weights": lexical_weights }
 
     @classmethod
     def startup(
         cls,
-        model_name_or_path: str | None=None,
+        model_name_or_path: str,
         device: str | None=None,
+        **kwargs,
     )-> None:
         """
         Startup the Splade_v3 model.
 
         Args:
-            model_name_or_path (str | None):
-                The model name or path. Default is None, leading to use the
-                model name set in configuration.
+            model_name_or_path (str): The model name or path.
+                None or empty will cause a ValueError.
             device (str | None):
-                Device to run the model on. If None, uses default from config.
+                Device to run the model on.
         """
         if cls._model is not None:
             return
 
-        _model_name_or_path = (
-            model_name_or_path if model_name_or_path else
-            conf.env.model_home + "/" + conf.embedding.splade_name
-        )
+        if not model_name_or_path:
+            raise ValueError("model_name_or_path must be provided.")
 
         from sentence_transformers import SparseEncoder
 
         try:
             cls._model = SparseEncoder(
-                _model_name_or_path,
-                device = device or conf.env.device,
+                model_name_or_path.strip(),
+                device = device,
             )
-            logger.info(f"{_model_name_or_path} loaded.")
+            logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
-            logger.error(f"Loading {_model_name_or_path} failed: {e}")
+            logger.error(f"Loading {model_name_or_path} failed: {e}")
             cls._model = None
             return
 
         try:
             _ = cls._model.encode("hello")
-            logger.info(f"{_model_name_or_path} warmed-up")
+            logger.info(f"{model_name_or_path} warmed-up")
         except Exception as e:
-            logger.error(f"Warming-up {_model_name_or_path} failed: {e}")
+            logger.error(f"Warming-up {model_name_or_path} failed: {e}")
             cls._model = None
             return
 
