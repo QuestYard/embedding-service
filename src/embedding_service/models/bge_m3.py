@@ -19,11 +19,11 @@ class BGEM3(AbstractEmbedder):
     def encode(
         cls,
         sentences: str | list[str],
-        batch_size: int | None=None,
-        return_dense: bool | None=None,
-        return_sparse: bool | None=None,
-        return_colbert_vecs: bool | None=None,
-        instruction: str | None=None,
+        batch_size: int | None = None,
+        return_dense: bool | None = None,
+        return_sparse: bool | None = None,
+        return_colbert_vecs: bool | None = None,
+        instruction: str | None = None,
         **kwargs,
     )-> VectorDict:
         """
@@ -88,12 +88,12 @@ class BGEM3(AbstractEmbedder):
     def startup(
         cls,
         model_name_or_path: str,
-        device: str | None=None,
-        batch_size: int=256,
-        normalize_embeddings: bool=True,
-        return_dense: bool=True,
-        return_sparse: bool=False,
-        return_colbert_vecs: bool=False,
+        device: str | None = None,
+        batch_size: int = 256,
+        normalize_embeddings: bool = True,
+        return_dense: bool = True,
+        return_sparse: bool = False,
+        return_colbert_vecs: bool = False,
         **kwargs,
     )-> None:
         """

@@ -17,7 +17,7 @@ class Splade_v3(AbstractEmbedder):
     def encode(
         cls,
         sentences: str | list[str],
-        batch_size: int=32,
+        batch_size: int = 32,
         **kwargs,
     )-> VectorDict:
         """
@@ -61,7 +61,7 @@ class Splade_v3(AbstractEmbedder):
     def startup(
         cls,
         model_name_or_path: str,
-        device: str | None=None,
+        device: str | None = None,
         **kwargs,
     )-> None:
         """

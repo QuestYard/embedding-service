@@ -1,8 +1,14 @@
 from .. import logger
 from .abstract_models import AbstractReranker
 
-class BGEReranker(AbstractReranker):
+class Qwen3Reranker(AbstractReranker):
+    _tokenizer = None
     _model = None
+    _query_instruction = None
+    _passage_instruction = None
+    _batch_size = None
+    _max_length = None
+    _device = None
 
     @classmethod
     def rank(
@@ -13,7 +19,6 @@ class BGEReranker(AbstractReranker):
         passage_instruction: str | None = None,
         batch_size: int | None = None,
         max_length: int | None = None,
-        normalize: bool | None = None,
         **kwargs,
     )-> list[float]:
         """
@@ -21,6 +26,8 @@ class BGEReranker(AbstractReranker):
 
         Ensures the model is started up before reranking, otherwise returns
         an empty list.
+
+        Qwen3-Reranker models confirm to normalize the final scores.
 
         Args:
             query (str):
@@ -35,8 +42,6 @@ class BGEReranker(AbstractReranker):
                 The batch size for processing passages. Default is None.
             max_length (int | None):
                 The max length of context, default 3072.
-            normalize (bool | None):
-                Whether to normalize the scores, default True.
 
         Returns:
             list[float]: A list of relevance scores for each passage.
@@ -55,17 +60,19 @@ class BGEReranker(AbstractReranker):
             [query, p] for p in passages
         ]
 
-        if query_instruction:
-            cls._model.query_instruction_for_rerank = query_instruction
-        if passage_instruction:
-            cls._model.passage_instruction_for_rerank = passage_instruction
+        return []
 
-        return cls._model.compute_score(
-            pairs,
-            batch_size=batch_size,
-            max_length=max_length,
-            normalize=normalize,
-        )
+#         if query_instruction:
+#             cls._model.query_instruction_for_rerank = query_instruction
+#         if passage_instruction:
+#             cls._model.passage_instruction_for_rerank = passage_instruction
+# 
+#         return cls._model.compute_score(
+#             pairs,
+#             batch_size=batch_size,
+#             max_length=max_length,
+#             normalize=normalize,
+#         )
 
     @classmethod
     def startup(
@@ -106,7 +113,8 @@ class BGEReranker(AbstractReranker):
         if not model_name_or_path:
             raise ValueError("model_name_or_path must be provided.")
 
-        from FlagEmbedding import FlagReranker
+        # from FlagEmbedding import FlagReranker
+        # TODO
 
         try:
             cls._model = FlagReranker(

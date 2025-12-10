@@ -17,8 +17,8 @@ class Qwen3Embedding(AbstractEmbedder):
     def encode(
         cls,
         sentences: str | list[str],
-        batch_size: int=32,
-        instruction: str | None=None,
+        batch_size: int = 32,
+        instruction: str | None = None,
         **kwargs,
     )-> VectorDict:
         """
@@ -65,8 +65,8 @@ class Qwen3Embedding(AbstractEmbedder):
     @classmethod
     def startup(
         cls,
-        model_name_or_path: str | None=None,
-        device: str | None=None,
+        model_name_or_path: str | None = None,
+        device: str | None = None,
         **kwargs,
     )-> None:
         """

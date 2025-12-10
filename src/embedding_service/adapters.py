@@ -46,7 +46,7 @@ def sparse_tensor_to_csr_matrix(t: Tensor)-> csr_matrix:
 
 def lexical_weights_to_csr_matrices(
     lw: list[dict[str, float]],
-    vocab_size: int=250002,     # dim of BGE-M3 model's sparse vector
+    vocab_size: int = 250002,     # dim of BGE-M3 model's sparse vector
 )-> csr_matrix:
     """
     Convert lexical weights dictionary list to scipy.sparse.csr_matrix.
@@ -60,6 +60,7 @@ def lexical_weights_to_csr_matrices(
         dim (int): Dimension of the sparse vector.
             Default is 250002 for BGE-M3. It can also be aquired by
             `BGEM3._model.model.vocab_size` or `len(BGEM3._model.tokenizer)`.
+            vocab_size = 30522 for Splade-V3 model.
 
     Returns:
         csr_matrix: The corresponding scipy.sparse.csr_matrix.
