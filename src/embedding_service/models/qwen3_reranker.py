@@ -62,23 +62,19 @@ class Qwen3Reranker(AbstractReranker):
             logger.warning("Model is not started.")
             return []
 
-        pairs = [query, passages] if isinstance(passages, str) else [
-            [query, p] for p in passages
+        pairs = [(query, passages)] if isinstance(passages, str) else [
+            (query, p) for p in passages
         ]
+        pairs = [
+            cls.format_instruction(
+                query_instruction or cls._query_instruction, q, p
+            ) for q, p in pairs
+        ]
+        # inputs = cls.process_inputs(pairs, max_length or cls._max_length)
+        # scores = cls.compute_logits(inputs)
+        scores = cls.compute_scores(pairs, batch_size, max_length)
 
-        return []
-
-#         if query_instruction:
-#             cls._model.query_instruction_for_rerank = query_instruction
-#         if passage_instruction:
-#             cls._model.passage_instruction_for_rerank = passage_instruction
-# 
-#         return cls._model.compute_score(
-#             pairs,
-#             batch_size=batch_size,
-#             max_length=max_length,
-#             normalize=normalize,
-#         )
+        return scores
 
     @classmethod
     def startup(
@@ -99,7 +95,7 @@ class Qwen3Reranker(AbstractReranker):
         not use passage instruction for reranker.
 
         Other default parameters including:
-        - max_length = 3072
+        - max_length = 2048
 
         Args:
             model_name_or_path (str):
@@ -128,7 +124,7 @@ class Qwen3Reranker(AbstractReranker):
             "Given the user query, retrieval the relevant passages"
         )
         cls._batch_size = batch_size
-        cls._max_length = 3072
+        cls._max_length = 2048
         cls._devices = cls.get_local_devices(device)
         cls._pool = None
 
@@ -164,15 +160,17 @@ class Qwen3Reranker(AbstractReranker):
         if cls._model is not None:
             cls._tokenizer = None
             cls._model = None
-            cls._pool = None    # TODO
+            cls._pool = None
             cls._devices = None
             cls._query_instruction = None
             cls._batch_size = None
             cls._max_length = None
             logger.info("Qwen3-Reranker model shutdown.")
 
+    # --- Inner functions ---
+
     @staticmethod
-    def get_local_devices(device: str | None)-> list[str]:
+    def get_local_devices(device: str | None=None)-> list[str]:
         import torch
         from transformers import is_torch_npu_available
 
@@ -189,5 +187,65 @@ class Qwen3Reranker(AbstractReranker):
                 return ["cpu"]
         else:
             return [device]
+
+    @staticmethod
+    def format_instruction(ins, query, doc):
+        return f"<Instruct>: {ins}\n<Query>: {query}\n<Document>: {doc}"
+
+    @classmethod
+    def process_inputs(cls, pairs, maxlen):
+        out = cls._tokenizer(
+            pairs,
+            padding=False,
+            truncation='longest_first',
+            return_attention_mask=False,
+            max_length=maxlen-len(cls.prefix_tokens)-len(cls.suffix_tokens),
+        )
+        for i, ele in enumerate(out['input_ids']):
+            out['input_ids'][i] = cls.prefix_tokens + ele + cls.suffix_tokens
+        out = cls._tokenizer.pad(
+            out,
+            padding=True,
+            return_tensors="pt",
+            max_length=maxlen,
+        )
+        for key in out:
+            out[key] = out[key].to(cls._model.device)
+        return out
+
+    @classmethod
+    def compute_scores(cls, pairs, batch_size, max_length, **kwargs):
+        if batch_size is None:
+            batch_size = cls._batch_size
+        if max_length is None:
+            max_length = cls._max_length
+        device = cls._devices[0]
+        if device.startswith("cuda"):
+            cls._model.half()
+        cls._model.to(device)
+        cls._model.eval()
+
+        from tqdm import tqdm
+        import torch
+
+        with torch.no_grad():
+            all_scores = []
+            for start_index in tqdm(
+                range(0, len(pairs), batch_size),
+                desc="Compute Scores",
+                disable=len(pairs) < batch_size,
+            ):
+                batch_pairs = pairs[start_index:start_index + batch_size]
+                batch_inputs = cls.process_inputs(batch_pairs, max_length)
+                # copied from Qwen3Reranker Github example
+                batch_scores = cls._model(**batch_inputs).logits[:, -1, :]
+                true_vector = batch_scores[:, cls.token_true_id]
+                false_vector = batch_scores[:, cls.token_false_id]
+                batch_scores = torch.stack([false_vector, true_vector], dim=1)
+                batch_scores = torch.nn.functional.log_softmax(batch_scores, dim=1)
+                scores = batch_scores[:, 1].exp().tolist()
+                all_scores.extend(scores)
+
+        return all_scores
 
 

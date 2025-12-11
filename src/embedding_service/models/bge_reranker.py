@@ -85,7 +85,7 @@ class BGEReranker(AbstractReranker):
 
         Other default parameters including:
         - normalize = True, can be overridden.
-        - max_length = 3072, fixed.
+        - max_length = 2048.
         - use_fp16 = False, fixed.
 
         Args:
@@ -117,7 +117,7 @@ class BGEReranker(AbstractReranker):
                 batch_size = 128,
                 normalize = True,
                 use_fp16 = False,
-                max_length = 3072,
+                max_length = 2048,
             )
             logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
