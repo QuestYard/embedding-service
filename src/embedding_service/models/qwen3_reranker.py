@@ -256,7 +256,10 @@ class Qwen3Reranker(AbstractReranker):
                 true_vector = batch_scores[:, cls.token_true_id]
                 false_vector = batch_scores[:, cls.token_false_id]
                 batch_scores = torch.stack([false_vector, true_vector], dim=1)
-                batch_scores = torch.nn.functional.log_softmax(batch_scores, dim=1)
+                batch_scores = torch.nn.functional.log_softmax(
+                    batch_scores,
+                    dim=1
+                )
                 scores = batch_scores[:, 1].exp().tolist()
                 all_scores.extend(scores)
 
@@ -265,10 +268,10 @@ class Qwen3Reranker(AbstractReranker):
     # codes below are copied from SentenceTransformer.py and slightly modified.
     @classmethod
     def start_multi_process_pool(cls):
-        logger.info("Start multi-process pool on devices: {cls._devices}")
+        logger.info(f"Start multi-process pool on devices: {cls._devices}")
 
         import multiprocessing as mp
-        from multiprocessing import Queue
+        # from multiprocessing import Queue
         from tqdm import tqdm
 
         cls._model.to("cpu")
@@ -281,7 +284,13 @@ class Qwen3Reranker(AbstractReranker):
         for device_id in tqdm(cls._devices, desc='initial target device'):
             p = ctx.Process(
                 target=cls._encode_multi_process_worker,
-                args=(cls, device_id, input_queue, output_queue),
+                args=(
+                    cls._model,
+                    cls._tokenizer,
+                    device_id,
+                    input_queue,
+                    output_queue
+                ),
                 daemon=True,
             )
             p.start()
@@ -295,12 +304,15 @@ class Qwen3Reranker(AbstractReranker):
 
     @staticmethod
     def _encode_multi_process_worker(
-        model_cls,
+        model,
+        tokenizer,
         target_device,
         input_queue,
         results_queue,
     ) -> None:
-        logger.warning(f"{model_cls._model = }")
+        logger.warning(f"{model = }")
+        logger.warning(f"{tokenizer = }")
+        logger.warning(f"{target_device = }")
         while True:
             try:
                 pass
