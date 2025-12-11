@@ -158,9 +158,23 @@ class Qwen3Reranker(AbstractReranker):
     @classmethod
     def shutdown(cls):
         if cls._model is not None:
+            import gc
+            import torch
+            if cls._pool is not None:
+                cls.stop_multi_process_pool()
+                cls._pool = None
+            try:
+                cls._model.to("cpu")
+                torch.cuda.empty_cache()
+            except:
+                pass
+
+            if callable(gc.collect):
+                gc.collect()
+
             cls._tokenizer = None
             cls._model = None
-            cls._pool = None
+
             cls._devices = None
             cls._query_instruction = None
             cls._batch_size = None
@@ -248,4 +262,74 @@ class Qwen3Reranker(AbstractReranker):
 
         return all_scores
 
+    # codes below are copied from SentenceTransformer.py and slightly modified.
+    @classmethod
+    def start_multi_process_pool(cls):
+        logger.info("Start multi-process pool on devices: {cls._devices}")
+
+        import multiprocessing as mp
+        from multiprocessing import Queue
+        from tqdm import tqdm
+
+        cls._model.to("cpu")
+        cls._model.share_memory()
+        ctx = mp.get_context("spawn")
+        input_queue = ctx.Queue()
+        output_queue = ctx.Queue()
+        processes = []
+
+        for device_id in tqdm(cls._devices, desc='initial target device'):
+            p = ctx.Process(
+                target=cls._encode_multi_process_worker,
+                args=(cls, device_id, input_queue, output_queue),
+                daemon=True,
+            )
+            p.start()
+            processes.append(p)
+
+        return {
+            "input": input_queue,
+            "output": output_queue,
+            "processes": processes
+        }
+
+    @staticmethod
+    def _encode_multi_process_worker(
+        model_cls,
+        target_device,
+        input_queue,
+        results_queue,
+    ) -> None:
+        logger.warning(f"{model_cls._model = }")
+        while True:
+            try:
+                pass
+                # chunk_id, sentences, kwargs = (
+                #     input_queue.get()
+                # )
+                # embeddings = model.compute_score_single_gpu(
+                #     sentences,
+                #     device=target_device,
+                #     **kwargs
+                # )
+
+                # results_queue.put([chunk_id, embeddings])
+            except:
+                break
+
+    @classmethod
+    def stop_multi_process_pool(cls):
+        for p in cls._pool["processes"]:
+            p.terminate()
+
+        for p in cls._pool["processes"]:
+            p.join()
+            p.close()
+
+        cls._pool["input"].close()
+        cls._pool["output"].close()
+
+    @classmethod
+    def test_mp(cls):
+        cls._pool = cls.start_multi_process_pool()
 
