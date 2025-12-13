@@ -114,7 +114,7 @@ class BGEReranker(AbstractReranker):
                 devices = device,
                 query_instruction_for_rerank = query_instruction,
                 passage_instruction_for_rerank = passage_instruction,
-                batch_size = 128,
+                batch_size = batch_size,
                 normalize = True,
                 use_fp16 = False,
                 max_length = 2048,

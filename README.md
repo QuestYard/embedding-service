@@ -99,7 +99,10 @@ uv sync --no-dev
 
 *作为一个 SDK 包使用时，无需提供 `embedding-service.yaml` 配置文件。若提供配置文件，其中的配置信息不起作用，需要用户项目自行管理模型参数。*
 
-SDK 说明详见：[Embedding SDK 的使用方法](./docs/sdk_usages/1_embedding.md)
+SDK 说明详见：
+
+- [Embedding SDK 的使用方法](./docs/sdk_usages/1_embedding.md)
+- [Reranker SDK 的使用方法](./docs/sdk_usages/2_reranker.md)
 
 ### As a Micro-Service
 

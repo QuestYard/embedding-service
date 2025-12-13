@@ -16,7 +16,7 @@
 
 模型的使用步骤如下：
 
-1. 导入模型类: `from embedding_service.model import <ModelClass>`；
+1. 导入模型类: `from embedding_service.models import <ModelClass>`；
 2. 启动模型: 使用类方法 `<ModelClass>.startup()` 启动模型，完成加载和预热，使模型常驻内存/显存；
 3. 向量化文本: 使用类方法 `<ModelClass>.encode()` 进行文本的向量化；
 4. 关闭模型: 使用类方法 `<ModelClass>.shutdown()` 关闭模型，释放内存/显存，当需要更换模型或改变模型参数时需要先关闭模型。
@@ -68,7 +68,7 @@ print(embeddings)
 - `batch_size`: 可选，表示批处理大小；
 - `return_dense`: 可选，是否返回密集向量；
 - `return_sparse`: 可选，是否返回稀疏向量；
-- `return_colbert`: 可选，是否返回 ColBERT 多向量。
+- `return_colbert`: 可选，是否返回 ColBERT 多向量；
 - `instruction`: 可选，向量化指令，用于给出明确的任务类型，例如检索、分类、聚类等。
 
 BGE-M3 是经过特定训练的“指令感知”模型，在向量化用户查询时使用合适的 `instruction` 参数有可能提升 1~5% 的召回率，但应注意：
@@ -113,6 +113,28 @@ Splade-v3 是一个稀疏向量内嵌模型，只能生成稀疏向量。
 
 Splade-v3 模型使用类 `Splade_v3` 启动和使用，与 `Qwen3Embedding` 的用法完全相同。
 
-## 返回值
+## Embeddings 返回值
 
-TODO: continue...
+Embedding 模型返回的向量，如果直接用来存入向量数据库，则必须和向量库所支持的数据类型进行匹配。
+
+HuRAG 项目使用 Milvus 向量库的 `AsyncMilvusClient` 接口实现异步访问。该异步接口的数据插入方法 (`insert`, `upsert`) 仅接受 `dict | list[dict]` 类型的输入参数。其中 dense vector 字段必须是 `list[float]` 或者 一维的 `np.ndarray`, 可以通过一次索引对模型返回的二维 `np.ndarray` 进行切片获得，即 `{"vector_field": embedding_result["dense_vecs"][i]}`；sparse vector 字段可以直接使用 BGEM3 返回的 defaultdict 格式的数据进行插入；对于 Splade-v3 模型返回的 torch.Tensor, 需要转换为 scipy.sparse.csr_matrix, 然后可以一次索引遍历插入。
+
+### 适配器模块 `embedding_service.adapters`
+
+`adapters` 模块针对三种 embedding 模型 `encode` 方法的返回类型提供一系列用于匹配 Milvus 异步客户端接口的工具函数。
+
+- `sparse_tensor_to_csr_matrix`: 用于将 Splade-v3 模型返回值转为 Milvus 向量库所支持的 `scipy.sparse.csr_matrix` 稀疏向量；
+- `lexical_weights_to_csr_matrices`: 用于将 BGE-M3 模型返回的 lexical weights 字典转为 `scipy.sparse.csr_matrix` 稀疏向量；
+- `unify_embeddings`: 用于将模型返回值转为统一的标准格式，无论返回何种类型的向量，统一为如下格式的字典：
+  ```python
+    {
+      "dense_vecs": numpy.ndarray | None,
+      "sparse_vecs": scipy.sparse.csr_matrix | None,
+      "colbert_vecs": list[numpy.ndarray] | None,
+    }
+  ```
+
+模块同时提供了一对用于将统一化后的标准 embeddings 与字节流互相转换的工具函数，用于 WebAPI 服务端生成二进制字节流响应和客户端解包获得的字节流。
+
+- `pack_unified_embeddings_to_bytes`: 将统一化后的标准 embeddings 字典打包为二进制流对象；
+- `unpack_unified_embeddings_from_bytes`: 将二进制流对象解包为统一的标准 embeddings 字典。

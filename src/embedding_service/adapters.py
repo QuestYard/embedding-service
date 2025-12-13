@@ -9,12 +9,6 @@ if TYPE_CHECKING:
 
 # --- Adapters for Milvus vector database ---
 
-# Notes:
-# - AsyncMilvusClient.insert 插入数据必须是 dict 或者 list[dict]
-# - dense vector 字段必须是 List[float] 或者 一维的 np.ndarray, 直接一次索引遍历模型返回的二维 np.ndarray 即可: `{"vector_field": embedding_result["dense_vecs"][i]}`
-# - sparse vector 字段可以直接使用 BGEM3 返回的 defaultdict 格式的数据进行插入；对于 Splade-v3 模型返回的 torch.Tensor, 需要转换为 scipy.sparse.csr_matrix, 然后可以一次索引遍历插入
-# 
-
 def sparse_tensor_to_csr_matrix(t: Tensor)-> csr_matrix:
     """
     Convert a sparse torch.Tensor to scipy.sparse.csr_matrix.
