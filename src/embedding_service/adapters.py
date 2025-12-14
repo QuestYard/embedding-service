@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from scipy.sparse import csr_matrix
     from torch import Tensor
+    from httpx import AsyncClient
     from .schemas import EmbeddingPayloadMeta
 
 

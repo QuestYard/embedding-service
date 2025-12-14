@@ -65,7 +65,7 @@ class Qwen3Embedding(AbstractEmbedder):
     @classmethod
     def startup(
         cls,
-        model_name_or_path: str | None = None,
+        model_name_or_path: str,
         device: str | None = None,
         **kwargs,
     )-> None:
