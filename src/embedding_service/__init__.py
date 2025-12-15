@@ -1,4 +1,4 @@
-__version__ = "0.1.0"
+__version__ = "0.1.0sp1"
 __author__ = "Libin, QuestYard HuRAG Team"
 __description__ = "SDK and API for embedding and reranker models"
 
