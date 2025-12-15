@@ -5,7 +5,7 @@ class EmbeddingRequest(BaseModel):
         ...,
         example=["What is LLM", "Something amazing"]
     )
-    batch_size: int | None = Field(default=None)
+    batch_size: int | None = Field(default=None, example=16)
     return_dense: bool = Field(default=True)
     return_sparse: bool = Field(default=False)
     return_colbert_vecs: bool = Field(default=False)
@@ -22,7 +22,7 @@ class RerankRequest(BaseModel):
     )
     query_instruction: str | None = Field(default=None, example="Query:")
     passage_instruction: str | None = Field(default=None, example="Passages:")
-    batch_size: int | None = Field(default=None)
-    max_length: int | None = Field(default=None)
-    normalize: bool | None = Field(default=None)
+    batch_size: int | None = Field(default=None, example=4)
+    max_length: int | None = Field(default=None, example=2048)
+    normalize: bool | None = Field(default=None, example=True)
 
