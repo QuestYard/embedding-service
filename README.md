@@ -93,7 +93,7 @@ uv sync --no-dev
 
 ### As an SDK package
 
-`embedding-service` 也可以作为一个 SDK 包被其他项目引用和使用。
+`embedding-service` 可以作为一个 SDK 包被其他项目引用和使用。
 
 建议采用 uv 进行项目管理，运行命令 `uv add -e /path/to/embedding-service` 进行可编辑安装。采用 pip 管理的项目，可以通过 `pip install -e /path/to/embedding-service` 命令进行安装。目前尚不支持 PyPI 发布。
 
@@ -106,7 +106,7 @@ SDK 说明详见：
 
 ### As a Micro-Service
 
-TODO *constructing...*
+`embedding-service` 可以作为一个独立的微服务运行，为 RAG 应用提供内嵌和重排服务。
 
 #### Instance Setup
 
@@ -116,17 +116,18 @@ TODO *constructing...*
 mkdir <working-dir>
 cd <working-dir>
 cp <src-dir>/embedding-service.yaml.sample embedding-service.yaml
-cp <src-dir>/startup.sh .
+# 编辑配置文件
+vim embedding-service.yaml
 ```
 
 **配置服务**
 
-作为微服务时，必须在项目工作目录下提供配置文件 `embedding-service.yaml` 如下：
+作为微服务时，必须在工作目录下提供配置文件 `embedding-service.yaml` 如下：
 
 ```yaml
 env:            # SERVER ENVIRONMENT
   device:       # cpu, cuda:x, or None (automatically choose by model)
-  model_home:   # /path/to/model_home, e.g. /home/user/.cache/modelscope/hub/models
+  model_home:   # /path/to/model_home, e.g. /home/user/.cache/models
 embedding:      # EMBEDDING MODEL CONFIGURATIONS
   dense_model:  # bge (default) or qwen3
   sparse_model: # bge (default) or splade
@@ -144,8 +145,30 @@ service:        # MICRO-SERVICE CONFIGURATIONS
   port:         # 8765 (default), port of service
 ```
 
+建议全部采用 BGE 模型，尤其在服务器没有 GPU 的情况下，以获得更好的运行效率，同时能一个 embedding 模型支持全部三种向量类型。
+
+如果确定不需要稀疏向量和 ColBERT 多向量内嵌，可以使用 Qwen3 模型以尝试提升检索效果。
+
+在没有 GPU 的服务器上，请勿混用 Qwen3 和 splade 模型，否则向量化的内存占用过高，运行效率低下。
+
 **启动与测试**
 
-配置完成后，进入工作目录执行启动脚本即可启动服务。
+配置完成后，进入工作目录激活虚拟环境，执行入口脚本即可启动服务。
 
-TODO *constructing...*
+```bash
+# 激活虚拟环境并启动服务
+source <uv-env-dir>/bin/activate
+embedding-service
+```
+
+也可以直接使用 uv 运行：
+
+```bash
+uv run embedding_service.app:main
+```
+
+服务启动完成后，在客户端可以访问 Swagger UI 页面 (`http://<host>:<port>/docs`)进行测试：
+
+#### API Documentation
+
+API 文档详见：[Embedding Service API 文档](./docs/micro_service.md)

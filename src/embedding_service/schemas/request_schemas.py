@@ -1,19 +1,28 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class EmbeddingRequest(BaseModel):
-    sentences: list[str] | str
-    batch_size: int | None = None
-    return_dense: bool = True
-    return_sparse: bool = False
-    return_colbert_vecs: bool = False
-    instruction: str | None = None
+    sentences: list[str] | str = Field(
+        ...,
+        example=["What is LLM", "Something amazing"]
+    )
+    batch_size: int | None = Field(default=None)
+    return_dense: bool = Field(default=True)
+    return_sparse: bool = Field(default=False)
+    return_colbert_vecs: bool = Field(default=False)
+    instruction: str | None = Field(
+        default=None,
+        example="Embed sentences for retrieval:"
+    )
 
 class RerankRequest(BaseModel):
-    query: str
-    documents: list[str] | str
-    query_instruction: str | None = None
-    passage_instruction: str | None = None
-    batch_size: int | None = None
-    max_length: int | None = None
-    normalize: bool | None = None
+    query: str = Field(..., example="What is LLM")
+    documents: list[str] | str = Field(
+        ...,
+        example=["That is an LLM", "Something amazing", "Large Language Model"]
+    )
+    query_instruction: str | None = Field(default=None, example="Query:")
+    passage_instruction: str | None = Field(default=None, example="Passages:")
+    batch_size: int | None = Field(default=None)
+    max_length: int | None = Field(default=None)
+    normalize: bool | None = Field(default=None)
 

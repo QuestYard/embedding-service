@@ -262,7 +262,7 @@ async def embed(request: EmbeddingRequest):
             sparse_embeddings = model_manager.sparse_model.encode(
                 sentences=request.sentences,
                 batch_size=request.batch_size or conf.embedding.batch_size,
-                instruction=request.instruction,
+                instruction=request.instruction or None,
                 **sparse_step,
             )
             all_embeddings.update(sparse_embeddings)
@@ -312,9 +312,9 @@ async def rerank(request: RerankRequest):
         scores = model_manager.reranker_model.rank(
             query=request.query,
             passages=documents,
-            query_instruction=request.query_instruction,
-            passage_instruction=request.passage_instruction, # only for BGE
-            batch_size=conf.reranker.batch_size,
+            query_instruction=request.query_instruction or None,
+            passage_instruction=request.passage_instruction or None,
+            batch_size=request.batch_size or conf.reranker.batch_size,
             max_length=request.max_length,
             normalize=request.normalize, # only for BGE
         )
@@ -340,6 +340,7 @@ def main(host: str | None=None, port: int | None=None, reload: bool=False):
         "embedding_service.app:app",
         host=host,
         port=port,
+        workers=1,
         reload=reload,
         log_level="info",
     )

@@ -53,13 +53,19 @@ class Qwen3Embedding(AbstractEmbedder):
             return { "dense_vecs": None }
 
         # encoding
-        embeddings = cls._model.encode(
-            [sentences] if not isinstance(sentences, list) else sentences,
-            batch_size=batch_size,
-            prompt=instruction,
-            convert_to_numpy=True,
-            convert_to_tensor=False,
-        )
+        try:
+            embeddings = cls._model.encode(
+                [sentences] if not isinstance(sentences, list) else sentences,
+                batch_size=batch_size,
+                prompt=instruction,
+                convert_to_numpy=True,
+                convert_to_tensor=False,
+            )
+            logger.info("Qwen3-Embedding encoding successful.")
+        except Exception as e:
+            logger.error(f"Qwen3-Embedding encoding failed: {e}")
+            return { "dense_vecs": None }
+
         return { "dense_vecs": embeddings }
 
     @classmethod

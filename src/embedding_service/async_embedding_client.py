@@ -6,14 +6,15 @@ from .schemas import (
     RerankResponse,
     EmbeddingPayloadMeta,
 )
-from .utilities import unpack_unified_embeddings_from_bytes
+from .adapters import unpack_unified_embeddings_from_bytes
 
 
 class AsyncEmbeddingClient:
     """Asynchronous client for embedding and reranking services."""
 
-    def __init__(self, base_url: str="http://127.0.0.1:8765"):
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, base_url: str, timeout: float=300.0):
+        self.base_url = base_url.strip().rstrip("/")
+        self.timeout = timeout
         self._client: httpx.AsyncClient | None = None
 
     async def __aenter__(self):
@@ -23,7 +24,7 @@ class AsyncEmbeddingClient:
         )
         return self
 
-    async def __aexit__(self):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self._client:
             await self._client.aclose()
 
@@ -95,14 +96,36 @@ class AsyncEmbeddingClient:
     async def rerank(
         self,
         query: str,
-        documents: Union[str, List[str]],
-        query_instruction: Optional[str] = None,
-        passage_instruction: Optional[str] = None,
-        batch_size: Optional[int] = None,
-        max_length: Optional[int] = None,
-        normalize: Optional[bool] = None
+        documents: str | list[str],
+        query_instruction: str | None = None,
+        passage_instruction: str | None = None,
+        batch_size: int | None = None,
+        max_length: int | None = None,
+        normalize: bool | None = None
     ) -> RerankResponse:
-        """对文档进行重排序（JSON响应）"""
+        """
+        Rerank documents based on their relevance to the query.
+
+        Args:
+            query (str):
+                The query string to compare against documents.
+            documents (str | list[str]):
+                A single document or a list of documents to be reranked.
+            query_instruction (str | None):
+                Instruction for queries.
+            passage_instruction (str | None):
+                Instruction for passages.
+            batch_size (int | None):
+                The batch size for processing documents.
+            max_length (int | None):
+                The max length of context.
+            normalize (bool | None):
+                Whether to normalize the scores.
+
+        Returns:
+            RerankResponse:
+                An RerankResponse object containing the reranked scores.
+        """
         self._ensure_client()
         
         request = RerankRequest(

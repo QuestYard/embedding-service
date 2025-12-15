@@ -51,10 +51,18 @@ class Splade_v3(AbstractEmbedder):
                 "lexical_weights": None,
             }
         # encoding
-        lexical_weights = cls._model.encode(
-            [sentences] if not isinstance(sentences, list) else sentences,
-            batch_size=batch_size,
-        )
+        try:
+            lexical_weights = cls._model.encode(
+                [sentences] if not isinstance(sentences, list) else sentences,
+                batch_size=batch_size,
+            )
+            logger.info("Splade_v3 encoding successful.")
+        except Exception as e:
+            logger.error(f"Splade_v3 encoding failed: {e}")
+            return {
+                "lexical_weights": None,
+            }
+
         return { "lexical_weights": lexical_weights }
 
     @classmethod
