@@ -95,7 +95,11 @@ uv sync --no-dev
 
 `embedding-service` 可以作为一个 SDK 包被其他项目引用和使用。
 
-建议采用 uv 进行项目管理，运行命令 `uv add -e /path/to/embedding-service` 进行可编辑安装。采用 pip 管理的项目，可以通过 `pip install -e /path/to/embedding-service` 命令进行安装。目前尚不支持 PyPI 发布。
+建议采用 uv 进行项目管理，运行命令 `uv add --editable /path/to/embedding-service` 进行可编辑安装。
+
+采用 pip 管理的项目，可以通过 `pip install -e /path/to/embedding-service` 命令进行安装。目前尚不支持 PyPI 发布。
+
+*`embedding-service` 依赖 pytorch 库，其他项目添加其作为依赖时，需要配置好平台对应的 torch 版本。*
 
 *作为一个 SDK 包使用时，无需提供 `embedding-service.yaml` 配置文件。若提供配置文件，其中的配置信息不起作用，需要用户项目自行管理模型参数。*
 
