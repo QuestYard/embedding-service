@@ -41,8 +41,11 @@ console_handler.setFormatter(fmt)
 console_handler.setLevel(logging.INFO)
 logger.addHandler(console_handler)
 
+from .async_embedding_client import AsyncEmbeddingClient
+
 __all__ = [
     "conf",
     "logger",
+    "AsyncEmbeddingClient",
 ]
 
