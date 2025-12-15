@@ -330,6 +330,10 @@ async def rerank(request: RerankRequest):
 
 def main(host: str | None=None, port: int | None=None, reload: bool=False):
     """Run the FastAPI app with Uvicorn."""
+    if not conf:
+        logger.error("Configuration file is required for starting as service.")
+        return
+
     import uvicorn
 
     # Load config for service settings
