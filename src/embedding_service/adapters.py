@@ -114,7 +114,7 @@ def unify_embeddings(embeddings: dict)-> dict:
     results = {}
     results["dense_vecs"] = embeddings.get("dense_vecs", None)
     results["sparse_vecs"] = None
-    if "lexical_weights" in embeddings:
+    if embeddings.get("lexical_weights", None) is not None:
         lw = embeddings["lexical_weights"]
         if isinstance(lw, list):
             results["sparse_vecs"] = lexical_weights_to_csr_matrices(lw)

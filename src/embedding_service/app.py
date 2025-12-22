@@ -265,6 +265,10 @@ async def embed(request: EmbeddingRequest):
                 instruction=request.instruction or None,
                 **sparse_step,
             )
+            if sparse_embeddings.get("dense_vecs", None) is None:
+                sparse_embeddings.pop("dense_vecs", None)
+            if sparse_embeddings.get("colbert_vecs", None) is None:
+                sparse_embeddings.pop("colbert_vecs", None)
             all_embeddings.update(sparse_embeddings)
 
         # Unify embeddings format
