@@ -24,6 +24,7 @@ SPARSE_MODELS = {
 RERANKER_MODELS = {
     "bge": BGEReranker,
     "qwen3": Qwen3Reranker,
+    "glm": GLMReranker,
 }
 
 class ModelManager:
@@ -99,28 +100,34 @@ class ModelManager:
             self.sparse_model.startup(model_path, device=conf.env.device)
 
         # Initialize reranker model
+        import os
         reranker_model_type = conf.reranker.model
         if reranker_model_type not in RERANKER_MODELS:
             logger.warning("Unknown reranker model, using bge-reranker-v2-m3.")
             reranker_model_type = "bge"
 
-        model_name = (
-            conf.reranker.bge_name if reranker_model_type == "bge"
-            else conf.reranker.qwen3_name
-        )
-        if not model_name:
-            raise ValueError(
-                f"{reranker_model_type}_name must be provided in config"
-            )
-
-        if model_home:
-            model_path = f"{model_home}/{model_name}"
+        if reranker_model_type == "bge":
+            model_name = conf.reranker.bge_name
+        elif reranker_model_type == "qwen3":
+            model_name = conf.reranker.qwen3_name
         else:
-            model_path = model_name
+            model_name = "rerank"
+
+        if not model_name:
+            raise ValueError(f"{reranker_model_type}_name must be provided in config")
+
+        if reranker_model_type == "glm":
+            model_path = os.getenv("GLM_RERANK_BASE_URL")
+        else:
+            model_path = f"{model_home}/{model_name}" if model_home else model_name
 
         logger.info(f"Starting up reranker model: {model_path}")
         self.reranker_model = RERANKER_MODELS[reranker_model_type]
-        self.reranker_model.startup(model_path, device=conf.env.device)
+        self.reranker_model.startup(
+            model_path,
+            device=conf.env.device,
+            glm_api_key=os.getenv("GLM_RERANK_API_KEY") or os.getenv("GLM_API_KEY"),
+        )
 
     def shutdown_models(self)-> None:
         """Shutdown all loaded models."""
@@ -301,10 +308,7 @@ async def rerank(request: RerankRequest):
     Returns JSON response with scores.
     """
     if not model_manager.reranker_model:
-        raise HTTPException(
-            status_code=503,
-            detail="No reranker model available"
-        )
+        raise HTTPException(status_code=503, detail="No reranker model available")
 
     try:
         # Prepare documents

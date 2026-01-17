@@ -1,8 +1,14 @@
 from .. import logger
 from .abstract_models import AbstractReranker
 
-class Qwen3Reranker(AbstractReranker):
-    _model = None
+import os
+import httpx
+
+class GLMReranker(AbstractReranker):
+    _model = None   # an Httpx.AsyncClient
+    _url = None
+    _api_key = None
+    _header = None
 
     @classmethod
     def rank(
@@ -15,7 +21,7 @@ class Qwen3Reranker(AbstractReranker):
         **kwargs,
     )-> list[float]:
         """
-        Rerank passages based on their relevance to the query using Qwen3 model.
+        Rerank passages based on their relevance to the query using BGE model.
 
         Ensures the model is started up before reranking, otherwise returns
         an empty list.
@@ -63,41 +69,35 @@ class Qwen3Reranker(AbstractReranker):
     def startup(
         cls,
         model_name_or_path: str,
+        glm_api_key: str | None = None,
         device: str | None = None,
         query_instruction: str | None = None,
         batch_size: int = 128,
         **kwargs,
     )-> None:
         """
-        Initialize, load and warm-up Qwen3-Reranker model.
-
-        The batch size and instructions are set during startup and will be
-        used as defaults. They can be overridden while compute scores.
-
-        Qwen3-Reranker models confirm to normalize the final scores. It does
-        not use passage instruction for reranker.
-
-        Other default parameters including:
-        - max_length = 2048
+        Initialize an Httpx.AsyncClient object for GLM Rerank model.
 
         Args:
-            model_name_or_path (str):
-                Path to the model. None or empty will cause a ValueError.
-            device (str | None):
-                Device to run the model on.
-            query_instruction: (str | None):
-                Instruction for queries.
-            batch_size: (int):
-                batch size, default is 128.
+            model_name_or_path (str): url
+            glm_api_key (str | None): GLM Token
+            device (str | None): not used
+            query_instruction: (str | None): not used
+            batch_size: (int): not used
         """
         if cls._model is not None:
             return
 
         if not model_name_or_path:
-            raise ValueError("model_name_or_path must be provided.")
+            raise ValueError("url must be provided.")
+        else:
+            cls._url = model_name_or_path
 
-        from .qwen3_reranker_model import Qwen3RerankerModel
-
+        if not glm_api_key:
+            raise ValueError("GLM token must be provided.")
+        else:
+            cls._api_key = glm_api_key
+# --- to be continued ---
         try:
             cls._model = Qwen3RerankerModel(
                 model_name_or_path.strip(),

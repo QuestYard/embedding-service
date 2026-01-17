@@ -9,7 +9,7 @@ embedding:      # EMBEDDING MODEL CONFIGURATIONS
   splade_name:  # name (path name) of the local splade-v3 model
   batch_size:   # >=4 (default 16)
 reranker:       # RERANKER MODEL CONFIGURATIONS
-  model:        # bge (default) or qwen3
+  model:        # bge (default) or qwen3 or glm
   bge_name:     # name (path name) of the local bge-reranker-v2-m3 model
   qwen3_name:   # name (directory name) of the local qwen3 reranker model
   batch_size:   # >=4 (default 4)

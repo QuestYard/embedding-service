@@ -28,6 +28,10 @@ try:
 except:
     pass
 
+if conf.reranker.model.lower() == "glm":
+    from dotenv import load_dotenv
+    load_dotenv()
+
 import logging
 
 logger = logging.getLogger("hurag-embedding-svr")
