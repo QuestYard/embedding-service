@@ -44,26 +44,27 @@ class GLMReranker(AbstractReranker):
         Returns:
             list[float]: A list of relevance scores for each passage.
         """
-        if not query:
-            logger.warning("Query must be provided.")
-            return []
-        if not passages:
-            logger.warning("Passages must be provided.")
-            return []
-        if cls._model is None:
-            logger.warning("Model is not started.")
-            return []
-
-        pairs = [[query, passages]] if isinstance(passages, str) else [
-            [query, p] for p in passages
-        ]
-
-        return cls._model.compute_score(
-            pairs,
-            instruction=query_instruction,
-            batch_size=batch_size,
-            max_length=max_length,
-        )
+        ...
+#         if not query:
+#             logger.warning("Query must be provided.")
+#             return []
+#         if not passages:
+#             logger.warning("Passages must be provided.")
+#             return []
+#         if cls._model is None:
+#             logger.warning("Model is not started.")
+#             return []
+# 
+#         pairs = [[query, passages]] if isinstance(passages, str) else [
+#             [query, p] for p in passages
+#         ]
+# 
+#         return cls._model.compute_score(
+#             pairs,
+#             instruction=query_instruction,
+#             batch_size=batch_size,
+#             max_length=max_length,
+#         )
 
     @classmethod
     def startup(
@@ -98,37 +99,38 @@ class GLMReranker(AbstractReranker):
         else:
             cls._api_key = glm_api_key
 # --- to be continued ---
-        try:
-            cls._model = Qwen3RerankerModel(
-                model_name_or_path.strip(),
-                device = device,
-                instruction = query_instruction,
-                batch_size = batch_size,
-            )
-            logger.info(f"{model_name_or_path} loaded.")
-        except Exception as e:
-            logger.error(f"Loading {model_name_or_path} failed: {e}")
-            cls._model = None
-            return
-
-        try:
-            _ = cls._model.compute_score([('query', 'passage')])
-            logger.info(f"{model_name_or_path} warmed-up.")
-        except Exception as e:
-            logger.error(f"Warming-up {model_name_or_path} failed: {e}")
-            return
+#         try:
+#             cls._model = Qwen3RerankerModel(
+#                 model_name_or_path.strip(),
+#                 device = device,
+#                 instruction = query_instruction,
+#                 batch_size = batch_size,
+#             )
+#             logger.info(f"{model_name_or_path} loaded.")
+#         except Exception as e:
+#             logger.error(f"Loading {model_name_or_path} failed: {e}")
+#             cls._model = None
+#             return
+# 
+#         try:
+#             _ = cls._model.compute_score([('query', 'passage')])
+#             logger.info(f"{model_name_or_path} warmed-up.")
+#         except Exception as e:
+#             logger.error(f"Warming-up {model_name_or_path} failed: {e}")
+#             return
 
     @classmethod
     def shutdown(cls):
-        if cls._model is None:
-            return
-
-        try:
-            cls._model.shutdown()
-            logger.info("Qwen3-Reranker model shutdown.")
-        except:
-            pass
-        finally:
-            cls._model = None
+        ...
+#         if cls._model is None:
+#             return
+# 
+#         try:
+#             cls._model.shutdown()
+#             logger.info("Qwen3-Reranker model shutdown.")
+#         except:
+#             pass
+#         finally:
+#             cls._model = None
 
 

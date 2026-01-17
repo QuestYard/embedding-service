@@ -8,7 +8,7 @@ from . import logger, conf, __version__ as app_version
 from .schemas import EmbeddingRequest, RerankRequest, RerankResponse
 from .adapters import unify_embeddings, pack_unified_embeddings_to_bytes
 from .models import BGEM3, Qwen3Embedding, Splade_v3
-from .models import BGEReranker, Qwen3Reranker
+from .models import BGEReranker, Qwen3Reranker, GLMReranker
 
 # Model registry
 EMBEDDING_MODELS = {

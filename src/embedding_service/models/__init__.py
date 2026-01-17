@@ -3,6 +3,7 @@ from .qwen3_embedding import Qwen3Embedding
 from .splade_v3 import Splade_v3
 from .bge_reranker import BGEReranker
 from .qwen3_reranker import Qwen3Reranker
+from .glm_reranker import GLMReranker
 
 __all__ = [
     "BGEM3",
@@ -10,4 +11,5 @@ __all__ = [
     "Splade_v3",
     "BGEReranker",
     "Qwen3Reranker",
+    "GLMReranker",
 ]
