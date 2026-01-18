@@ -33,6 +33,7 @@ class GLMReranker(AbstractReranker):
     _base_url = None
     _api_key = None
     _headers = None
+    _lock = threading.Lock()
 
     @staticmethod
     def _start_background_loop(loop: asyncio.AbstractEventLoop) -> None:
@@ -86,21 +87,22 @@ class GLMReranker(AbstractReranker):
         if isinstance(passages, str):
             passages = [passages]
 
-        future = asyncio.run_coroutine_threadsafe(
-            parallel_glm_rerank(
-                query=query,
-                documents=passages,
-                model=cls._model,
-                base_url=cls._base_url,
-                client=cls._client,
-                batch_size=batch_size,
-                workers=20,
-            ),
-            cls._loop,
-        )
+        with cls._lock:
+            future = asyncio.run_coroutine_threadsafe(
+                parallel_glm_rerank(
+                    query=query,
+                    documents=passages,
+                    model=cls._model,
+                    base_url=cls._base_url,
+                    client=cls._client,
+                    batch_size=batch_size,
+                    workers=20,
+                ),
+                cls._loop,
+            )
 
-        logger.warning(f"[{perf_counter_ns()}]: finish rerank. {query = }")
-        return future.result()
+            logger.warning(f"[{perf_counter_ns()}]: finish rerank. {query = }")
+            return future.result()
 
     @classmethod
     def startup(
