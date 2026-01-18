@@ -341,12 +341,16 @@ def main(host: str | None = None, port: int | None = None, reload: bool = False)
     host = host or conf.service.host
     port = port or conf.service.port
 
+    import os
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+
     uvicorn.run(
         "embedding_service.app:app",
         host=host,
         port=port,
         workers=1,
         reload=reload,
+        reload_dirs=[src_dir],
         log_level="info",
     )
 

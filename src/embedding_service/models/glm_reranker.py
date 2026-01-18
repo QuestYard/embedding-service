@@ -71,9 +71,6 @@ class GLMReranker(AbstractReranker):
         Returns:
             list[float]: A list of relevance scores for each passage.
         """
-        from time import perf_counter_ns
-        logger.warning(f"[{perf_counter_ns()}]: start rerank. {query = }")
-
         if not query:
             logger.warning("Query must be provided.")
             return []
@@ -100,9 +97,7 @@ class GLMReranker(AbstractReranker):
                 ),
                 cls._loop,
             )
-
-            logger.warning(f"[{perf_counter_ns()}]: finish rerank. {query = }")
-            return future.result()
+        return future.result()
 
     @classmethod
     def startup(
