@@ -7,14 +7,15 @@ from pathlib import Path
 
 # -- Global Variables --
 
-conf = None     # Global configurations
-logger = None   # Global logger
+conf = None  # Global configurations
+logger = None  # Global logger
 
 # -- Initialization --
 
 from .utilities import dict_to_namespace
+
 try:
-    with open(Path.cwd()/"embedding-service.yaml", "r", encoding="utf-8") as f:
+    with open(Path.cwd() / "embedding-service.yaml", "r", encoding="utf-8") as f:
         conf = yaml.safe_load(f)
     conf = dict_to_namespace(conf)
     conf.env.model_home = conf.env.model_home or ""
@@ -30,16 +31,15 @@ except:
 
 if conf.reranker.model.lower() == "glm":
     from dotenv import load_dotenv
-    load_dotenv()
+    from pathlib import Path
+    load_dotenv(Path.cwd() / ".env")
 
 import logging
 
 logger = logging.getLogger("hurag-embedding-svr")
 logger.propagate = False
 logger.setLevel(logging.INFO)
-fmt = logging.Formatter(
-    "%(asctime)s [%(name)s] %(levelname)s - %(message)s"
-)
+fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s - %(message)s")
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(fmt)
 console_handler.setLevel(logging.INFO)
@@ -52,4 +52,3 @@ __all__ = [
     "logger",
     "AsyncEmbeddingClient",
 ]
-

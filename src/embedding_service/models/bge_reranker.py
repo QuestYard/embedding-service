@@ -1,6 +1,7 @@
 from .. import logger
 from .abstract_models import AbstractReranker
 
+
 class BGEReranker(AbstractReranker):
     _model = None
 
@@ -15,7 +16,7 @@ class BGEReranker(AbstractReranker):
         max_length: int | None = None,
         normalize: bool | None = None,
         **kwargs,
-    )-> list[float]:
+    ) -> list[float]:
         """
         Rerank passages based on their relevance to the query using BGE model.
 
@@ -51,9 +52,11 @@ class BGEReranker(AbstractReranker):
             logger.warning("Model is not started.")
             return []
 
-        pairs = [query, passages] if isinstance(passages, str) else [
-            [query, p] for p in passages
-        ]
+        pairs = (
+            [query, passages]
+            if isinstance(passages, str)
+            else [[query, p] for p in passages]
+        )
 
         if query_instruction:
             cls._model.query_instruction_for_rerank = query_instruction
@@ -76,7 +79,7 @@ class BGEReranker(AbstractReranker):
         passage_instruction: str | None = None,
         batch_size: int = 128,
         **kwargs,
-    )-> None:
+    ) -> None:
         """
         Initialize, load and warm-up BGE-Reranker-v2-m3 model.
 
@@ -111,13 +114,13 @@ class BGEReranker(AbstractReranker):
         try:
             cls._model = FlagReranker(
                 model_name_or_path.strip(),
-                devices = device,
-                query_instruction_for_rerank = query_instruction,
-                passage_instruction_for_rerank = passage_instruction,
-                batch_size = batch_size,
-                normalize = True,
-                use_fp16 = False,
-                max_length = 2048,
+                devices=device,
+                query_instruction_for_rerank=query_instruction,
+                passage_instruction_for_rerank=passage_instruction,
+                batch_size=batch_size,
+                normalize=True,
+                use_fp16=False,
+                max_length=2048,
             )
             logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
@@ -126,7 +129,7 @@ class BGEReranker(AbstractReranker):
             return
 
         try:
-            _ = cls._model.compute_score(['query', 'passage'])
+            _ = cls._model.compute_score(["query", "passage"])
             logger.info(f"{model_name_or_path} warmed-up.")
         except Exception as e:
             logger.error(f"Warming-up {model_name_or_path} failed: {e}")
@@ -137,4 +140,3 @@ class BGEReranker(AbstractReranker):
         if cls._model is not None:
             cls._model = None
             logger.info("BGE-Reranker-v2-m3 model shutdown.")
-

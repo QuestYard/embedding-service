@@ -10,10 +10,11 @@ if TYPE_CHECKING:
 
 # --- Adapters for Milvus vector database ---
 
-def sparse_tensor_to_csr_matrix(t: Tensor)-> csr_matrix:
+
+def sparse_tensor_to_csr_matrix(t: Tensor) -> csr_matrix:
     """
     Convert a sparse torch.Tensor to scipy.sparse.csr_matrix.
-    
+
     It's used to convert sparse embeddings from models like Splade-v3 into
     a format suitable for insertion into Milvus and compute similarity.
 
@@ -33,16 +34,13 @@ def sparse_tensor_to_csr_matrix(t: Tensor)-> csr_matrix:
     values = coo.values().cpu().numpy()
     indices = coo.indices().cpu().numpy()
     shape = tuple(coo.size())
-    return csr_matrix(
-        (values, (indices[0], indices[1])),
-        shape=shape,
-        dtype=np.float32
-    )
+    return csr_matrix((values, (indices[0], indices[1])), shape=shape, dtype=np.float32)
+
 
 def lexical_weights_to_csr_matrices(
     lw: list[dict[str, float]],
-    vocab_size: int = 250002,     # dim of BGE-M3 model's sparse vector
-)-> csr_matrix:
+    vocab_size: int = 250002,  # dim of BGE-M3 model's sparse vector
+) -> csr_matrix:
     """
     Convert lexical weights dictionary list to scipy.sparse.csr_matrix.
 
@@ -92,7 +90,8 @@ def lexical_weights_to_csr_matrices(
 
     return csr_matrix((data, indices, indptr), shape=(n_rows, vocab_size))
 
-def unify_embeddings(embeddings: dict)-> dict:
+
+def unify_embeddings(embeddings: dict) -> dict:
     """
     Unify embeddings dictionary from different models into a standard format.
 
@@ -124,9 +123,10 @@ def unify_embeddings(embeddings: dict)-> dict:
 
     return results
 
+
 def pack_unified_embeddings_to_bytes(
     unified_embeddings: dict,
-)-> bytes:
+) -> bytes:
     """
     Pack three embedding parts into a compressed .npz bytes stream.
 
@@ -165,9 +165,7 @@ def pack_unified_embeddings_to_bytes(
         arr = np.asarray(dense, dtype=np.float32)
         save_dict["dense_data"] = arr.ravel()
 
-        meta.update(
-            {"dense_shape": tuple(arr.shape), "dense_dtype": str(arr.dtype)}
-        )
+        meta.update({"dense_shape": tuple(arr.shape), "dense_dtype": str(arr.dtype)})
 
     if sparse is not None:
         save_dict["sparse_data"] = np.asarray(sparse.data, dtype=np.float32)
@@ -209,9 +207,10 @@ def pack_unified_embeddings_to_bytes(
     np.savez_compressed(buf, **save_dict)
     return buf.getvalue()
 
+
 def unpack_unified_embeddings_from_bytes(
-    npz_bytes: bytes
-)-> tuple[dict, EmbeddingPayloadMeta]:
+    npz_bytes: bytes,
+) -> tuple[dict, EmbeddingPayloadMeta]:
     """
     Unpack unified embeddings and meta from a compressed .npz bytes stream.
 
@@ -276,4 +275,3 @@ def unpack_unified_embeddings_from_bytes(
         "sparse_vecs": sparse,
         "colbert_vecs": colbert,
     }, meta
-

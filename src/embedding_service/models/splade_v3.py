@@ -7,8 +7,10 @@ from .abstract_models import AbstractEmbedder
 if TYPE_CHECKING:
     from torch import Tensor
 
+
 class VectorDict(TypedDict):
     lexical_weights: Tensor | None
+
 
 class Splade_v3(AbstractEmbedder):
     _model = None
@@ -19,7 +21,7 @@ class Splade_v3(AbstractEmbedder):
         sentences: str | list[str],
         batch_size: int = 32,
         **kwargs,
-    )-> VectorDict:
+    ) -> VectorDict:
         """
         Encode sentences using Splade_v3 model. Ensures the model is started up
         before encoding, otherwise returns None for all embeddings.
@@ -63,7 +65,7 @@ class Splade_v3(AbstractEmbedder):
                 "lexical_weights": None,
             }
 
-        return { "lexical_weights": lexical_weights }
+        return {"lexical_weights": lexical_weights}
 
     @classmethod
     def startup(
@@ -71,7 +73,7 @@ class Splade_v3(AbstractEmbedder):
         model_name_or_path: str,
         device: str | None = None,
         **kwargs,
-    )-> None:
+    ) -> None:
         """
         Startup the Splade_v3 model.
 
@@ -92,7 +94,7 @@ class Splade_v3(AbstractEmbedder):
         try:
             cls._model = SparseEncoder(
                 model_name_or_path.strip(),
-                device = device,
+                device=device,
             )
             logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
@@ -109,7 +111,7 @@ class Splade_v3(AbstractEmbedder):
             return
 
     @classmethod
-    def shutdown(cls)-> None:
+    def shutdown(cls) -> None:
         if cls._model is not None:
             cls._model = None
             logger.info("Splade_v3 model shutdown.")

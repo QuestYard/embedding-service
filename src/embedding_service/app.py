@@ -27,6 +27,7 @@ RERANKER_MODELS = {
     "glm": GLMReranker,
 }
 
+
 class ModelManager:
     """Manages model lifecycle and configuration."""
 
@@ -37,7 +38,7 @@ class ModelManager:
         self.sparse_type = None
         self.dense_type = None
 
-    def startup_models(self)-> None:
+    def startup_models(self) -> None:
         if not conf:
             raise RuntimeError("Configuration not loaded")
 
@@ -53,13 +54,12 @@ class ModelManager:
         self.dense_type = dense_model_type
 
         model_name = (
-            conf.embedding.bge_name if dense_model_type == "bge"
+            conf.embedding.bge_name
+            if dense_model_type == "bge"
             else conf.embedding.qwen3_name
         )
         if not model_name:
-            raise ValueError(
-                f"{dense_model_type}_name must be specified in config"
-            )
+            raise ValueError(f"{dense_model_type}_name must be specified in config")
 
         if model_home:
             model_path = f"{model_home}/{model_name}"
@@ -82,13 +82,12 @@ class ModelManager:
             self.sparse_model = self.dense_model
         else:
             model_name = (
-                conf.embedding.bge_name if sparse_model_type == "bge"
+                conf.embedding.bge_name
+                if sparse_model_type == "bge"
                 else conf.embedding.splade_name
             )
             if not model_name:
-                raise ValueError(
-                    f"{sparse_model_type}_name must be provided in config"
-                )
+                raise ValueError(f"{sparse_model_type}_name must be provided in config")
 
             if model_home:
                 model_path = f"{model_home}/{model_name}"
@@ -101,6 +100,7 @@ class ModelManager:
 
         # Initialize reranker model
         import os
+
         reranker_model_type = conf.reranker.model
         if reranker_model_type not in RERANKER_MODELS:
             logger.warning("Unknown reranker model, using bge-reranker-v2-m3.")
@@ -126,10 +126,11 @@ class ModelManager:
         self.reranker_model.startup(
             model_path,
             device=conf.env.device,
+            glm_model=os.getenv("GLM_RERANK_MODEL"),
             glm_api_key=os.getenv("GLM_RERANK_API_KEY") or os.getenv("GLM_API_KEY"),
         )
 
-    def shutdown_models(self)-> None:
+    def shutdown_models(self) -> None:
         """Shutdown all loaded models."""
         if self.dense_model:
             self.dense_model.shutdown()
@@ -143,8 +144,10 @@ class ModelManager:
             self.reranker_model.shutdown()
             self.reranker_model = None
 
+
 # Global model manager instance
 model_manager = ModelManager()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -174,13 +177,15 @@ app = FastAPI(
     title="Embedding Service",
     description="FastAPI service for embedding and reranking operations",
     version=app_version,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
+
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
 
 @app.post("/embed")
 async def embed(request: EmbeddingRequest):
@@ -189,10 +194,7 @@ async def embed(request: EmbeddingRequest):
     Returns binary stream containing packed embeddings.
     """
     if not model_manager.dense_model and not model_manager.sparse_model:
-        raise HTTPException(
-            status_code=503,
-            detail="No embedding models available"
-        )
+        raise HTTPException(status_code=503, detail="No embedding models available")
 
     try:
         # Collect embeddings from different models
@@ -207,20 +209,15 @@ async def embed(request: EmbeddingRequest):
         sparse_step = None
 
         if request.return_colbert_vecs:
-            if (
-                model_manager.dense_type != "bge"
-                and model_manager.sparse_type != "bge"
-            ):
-                logger.warning(
-                    "ColBERT vectors requested but no BGE model available."
-                )
+            if model_manager.dense_type != "bge" and model_manager.sparse_type != "bge":
+                logger.warning("ColBERT vectors requested but no BGE model available.")
             elif model_manager.dense_type == "bge":
                 dense_step = {
                     "return_dense": False,
                     "return_sparse": False,
                     "return_colbert_vecs": True,
                 }
-            else: # sparse_type must be "bge" here
+            else:  # sparse_type must be "bge" here
                 sparse_step = {
                     "return_dense": False,
                     "return_sparse": False,
@@ -228,7 +225,7 @@ async def embed(request: EmbeddingRequest):
                 }
 
         if request.return_dense:
-            if dense_step: # only when colbert vecs already requested
+            if dense_step:  # only when colbert vecs already requested
                 dense_step["return_dense"] = True
             else:
                 dense_step = {
@@ -245,7 +242,7 @@ async def embed(request: EmbeddingRequest):
             ):
                 dense_step["return_sparse"] = True
             else:
-                if sparse_step: # only when colbert vecs already requested
+                if sparse_step:  # only when colbert vecs already requested
                     sparse_step["return_sparse"] = True
                 else:
                     sparse_step = {
@@ -280,26 +277,24 @@ async def embed(request: EmbeddingRequest):
 
         # Unify embeddings format
         unified_embeddings = unify_embeddings(all_embeddings)
-        
+
         # Pack to bytes
         packed_bytes = pack_unified_embeddings_to_bytes(unified_embeddings)
-        
+
         # Return as streaming response
         return StreamingResponse(
             iter([packed_bytes]),
             media_type="application/octet-stream",
             headers={
                 "Content-Type": "application/octet-stream",
-                "Content-Disposition": "inline"
-            }
+                "Content-Disposition": "inline",
+            },
         )
 
     except Exception as e:
         logger.error(f"Embedding failed: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Embedding failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Embedding failed: {str(e)}")
+
 
 @app.post("/rerank", response_model=RerankResponse)
 async def rerank(request: RerankRequest):
@@ -324,19 +319,17 @@ async def rerank(request: RerankRequest):
             passage_instruction=request.passage_instruction or None,
             batch_size=request.batch_size or conf.reranker.batch_size,
             max_length=request.max_length,
-            normalize=request.normalize, # only for BGE
+            normalize=request.normalize,  # only for BGE
         )
 
         return RerankResponse(scores=scores)
 
     except Exception as e:
         logger.error(f"Reranking failed: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Reranking failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Reranking failed: {str(e)}")
 
-def main(host: str | None=None, port: int | None=None, reload: bool=False):
+
+def main(host: str | None = None, port: int | None = None, reload: bool = False):
     """Run the FastAPI app with Uvicorn."""
     if not conf:
         logger.error("Configuration file is required for starting as service.")
@@ -356,6 +349,7 @@ def main(host: str | None=None, port: int | None=None, reload: bool=False):
         reload=reload,
         log_level="info",
     )
+
 
 if __name__ == "__main__":
     main()

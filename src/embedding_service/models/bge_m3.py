@@ -7,10 +7,12 @@ from .abstract_models import AbstractEmbedder
 if TYPE_CHECKING:
     import numpy
 
+
 class VectorDict(TypedDict):
     dense_vecs: numpy.ndarray | None
     lexical_weights: list[dict[str, float]] | None
     colbert_vecs: list[numpy.ndarray] | None
+
 
 class BGEM3(AbstractEmbedder):
     _model = None
@@ -25,7 +27,7 @@ class BGEM3(AbstractEmbedder):
         return_colbert_vecs: bool | None = None,
         instruction: str | None = None,
         **kwargs,
-    )-> VectorDict:
+    ) -> VectorDict:
         """
         Encode sentences using BGEM3 model. Ensures the model is started up
         before encoding, otherwise returns None for all embeddings.
@@ -61,27 +63,19 @@ class BGEM3(AbstractEmbedder):
         """
         if not sentences:
             logger.warning("No sentences provided for encoding.")
-            return {
-                "dense_vecs": None,
-                "lexical_weights": None,
-                "colbert_vecs":None
-            }
+            return {"dense_vecs": None, "lexical_weights": None, "colbert_vecs": None}
         if cls._model is None:
             logger.warning("Model is not started.")
-            return {
-                "dense_vecs": None,
-                "lexical_weights": None,
-                "colbert_vecs":None
-            }
+            return {"dense_vecs": None, "lexical_weights": None, "colbert_vecs": None}
         # encoding
         return cls._model.encode(
             [sentences] if not isinstance(sentences, list) else sentences,
-            batch_size = batch_size,
-            return_dense = return_dense,
-            return_sparse = return_sparse,
-            return_colbert_vecs = return_colbert_vecs,
-            instruction = instruction,
-            instruction_format = "{}{}" if instruction else None,
+            batch_size=batch_size,
+            return_dense=return_dense,
+            return_sparse=return_sparse,
+            return_colbert_vecs=return_colbert_vecs,
+            instruction=instruction,
+            instruction_format="{}{}" if instruction else None,
         )
 
     @classmethod
@@ -95,7 +89,7 @@ class BGEM3(AbstractEmbedder):
         return_sparse: bool = False,
         return_colbert_vecs: bool = False,
         **kwargs,
-    )-> None:
+    ) -> None:
         """
         Initialize, load and warm-up BGEM3 model.
 
@@ -138,13 +132,13 @@ class BGEM3(AbstractEmbedder):
         try:
             cls._model = BGEM3FlagModel(
                 model_name_or_path.strip(),
-                normalize_embeddings = normalize_embeddings,
-                use_fp16 = False,
-                devices = device,
-                batch_size = batch_size,
-                return_dense = return_dense,
-                return_sparse = return_sparse,
-                return_colbert_vecs = return_colbert_vecs,
+                normalize_embeddings=normalize_embeddings,
+                use_fp16=False,
+                devices=device,
+                batch_size=batch_size,
+                return_dense=return_dense,
+                return_sparse=return_sparse,
+                return_colbert_vecs=return_colbert_vecs,
             )
             logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
@@ -161,7 +155,7 @@ class BGEM3(AbstractEmbedder):
             return
 
     @classmethod
-    def shutdown(cls)-> None:
+    def shutdown(cls) -> None:
         if cls._model is not None:
             cls._model = None
             logger.info("BGEM3 model shutdown.")

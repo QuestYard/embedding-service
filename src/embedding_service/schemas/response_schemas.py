@@ -1,14 +1,17 @@
 from pydantic import BaseModel
 
+
 class CSRMeta(BaseModel):
     nnz: int
     shape: tuple[int, int]
     dtype: str
 
+
 class ColBertMeta(BaseModel):
     count: int
     shapes: list[tuple[int, ...]]
     dtype: str
+
 
 class EmbeddingPayloadMeta(BaseModel):
     has_dense: bool
@@ -22,6 +25,7 @@ class EmbeddingPayloadMeta(BaseModel):
     colbert_meta: ColBertMeta | None = None
 
     format_version: str = "npz_v1"
+
 
 class RerankResponse(BaseModel):
     scores: list[float] | None = None

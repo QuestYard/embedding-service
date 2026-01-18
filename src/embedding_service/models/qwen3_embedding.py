@@ -7,8 +7,10 @@ from .abstract_models import AbstractEmbedder
 if TYPE_CHECKING:
     import numpy
 
+
 class VectorDict(TypedDict):
     dense_vecs: numpy.ndarray | None
+
 
 class Qwen3Embedding(AbstractEmbedder):
     _model = None
@@ -20,7 +22,7 @@ class Qwen3Embedding(AbstractEmbedder):
         batch_size: int = 32,
         instruction: str | None = None,
         **kwargs,
-    )-> VectorDict:
+    ) -> VectorDict:
         """
         Encode sentences using Qwen3-Embedding-?B model.
 
@@ -47,10 +49,10 @@ class Qwen3Embedding(AbstractEmbedder):
         """
         if not sentences:
             logger.warning("No sentences provided for encoding.")
-            return { "dense_vecs": None }
+            return {"dense_vecs": None}
         if cls._model is None:
             logger.warning("Model is not started.")
-            return { "dense_vecs": None }
+            return {"dense_vecs": None}
 
         # encoding
         try:
@@ -64,9 +66,9 @@ class Qwen3Embedding(AbstractEmbedder):
             logger.info("Qwen3-Embedding encoding successful.")
         except Exception as e:
             logger.error(f"Qwen3-Embedding encoding failed: {e}")
-            return { "dense_vecs": None }
+            return {"dense_vecs": None}
 
-        return { "dense_vecs": embeddings }
+        return {"dense_vecs": embeddings}
 
     @classmethod
     def startup(
@@ -74,10 +76,10 @@ class Qwen3Embedding(AbstractEmbedder):
         model_name_or_path: str,
         device: str | None = None,
         **kwargs,
-    )-> None:
+    ) -> None:
         """
         Initialize the Qwen3-Embedding model if not already initialized.
-        
+
         Args:
             model_name_or_path (str):
                 Path to the model. None or empty will cause a ValueError.
@@ -95,7 +97,7 @@ class Qwen3Embedding(AbstractEmbedder):
         try:
             cls._model = SentenceTransformer(
                 model_name_or_path.strip(),
-                device = device,
+                device=device,
             )
             logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
@@ -112,7 +114,7 @@ class Qwen3Embedding(AbstractEmbedder):
             return
 
     @classmethod
-    def shutdown(cls)-> None:
+    def shutdown(cls) -> None:
         if cls._model is not None:
             cls._model = None
             logger.info("Qwen3Embedding model shutdown.")

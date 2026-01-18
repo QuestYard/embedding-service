@@ -18,4 +18,3 @@ def dict_to_namespace(data):
     else:
         # Return all other types (strings, integers, etc.) unchanged
         return data
-

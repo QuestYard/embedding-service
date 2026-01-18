@@ -12,15 +12,14 @@ from .adapters import unpack_unified_embeddings_from_bytes
 class AsyncEmbeddingClient:
     """Asynchronous client for embedding and reranking services."""
 
-    def __init__(self, base_url: str, timeout: float=300.0):
+    def __init__(self, base_url: str, timeout: float = 300.0):
         self.base_url = base_url.strip().rstrip("/")
         self.timeout = timeout
         self._client: httpx.AsyncClient | None = None
 
     async def __aenter__(self):
         self._client = httpx.AsyncClient(
-            timeout=self.timeout,
-            limits=httpx.Limits(max_connections=10)
+            timeout=self.timeout, limits=httpx.Limits(max_connections=10)
         )
         return self
 
@@ -41,7 +40,7 @@ class AsyncEmbeddingClient:
         return_dense: bool = True,
         return_sparse: bool = False,
         return_colbert_vecs: bool = False,
-        instruction: str | None = None
+        instruction: str | None = None,
     ) -> tuple[dict, EmbeddingPayloadMeta]:
         """
         Get embeddings for the given sentences (unified format with metadata).
@@ -74,13 +73,11 @@ class AsyncEmbeddingClient:
             return_dense=return_dense,
             return_sparse=return_sparse,
             return_colbert_vecs=return_colbert_vecs,
-            instruction=instruction
+            instruction=instruction,
         )
 
         async with self._client.stream(
-            "POST",
-            f"{self.base_url}/embed",
-            json=request.model_dump()
+            "POST", f"{self.base_url}/embed", json=request.model_dump()
         ) as response:
             response.raise_for_status()
 
@@ -101,7 +98,7 @@ class AsyncEmbeddingClient:
         passage_instruction: str | None = None,
         batch_size: int | None = None,
         max_length: int | None = None,
-        normalize: bool | None = None
+        normalize: bool | None = None,
     ) -> RerankResponse:
         """
         Rerank documents based on their relevance to the query.
@@ -127,7 +124,7 @@ class AsyncEmbeddingClient:
                 An RerankResponse object containing the reranked scores.
         """
         self._ensure_client()
-        
+
         request = RerankRequest(
             query=query,
             documents=documents,
@@ -135,14 +132,12 @@ class AsyncEmbeddingClient:
             passage_instruction=passage_instruction,
             batch_size=batch_size,
             max_length=max_length,
-            normalize=normalize
+            normalize=normalize,
         )
-        
+
         response = await self._client.post(
-            f"{self.base_url}/rerank",
-            json=request.model_dump()
+            f"{self.base_url}/rerank", json=request.model_dump()
         )
         response.raise_for_status()
-        
-        return RerankResponse.model_validate(response.json())
 
+        return RerankResponse.model_validate(response.json())

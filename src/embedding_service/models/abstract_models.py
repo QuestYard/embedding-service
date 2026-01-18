@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 
+
 class AbstractEmbedder(ABC):
     def __init__(self):
-        raise TypeError(
-            "Embedders cannot be instantiated. Use CLS.startup() instead."
-        )
+        raise TypeError("Embedders cannot be instantiated. Use CLS.startup() instead.")
 
     @classmethod
     @abstractmethod
@@ -32,11 +31,10 @@ class AbstractEmbedder(ABC):
         """Release model resources"""
         pass
 
+
 class AbstractReranker(ABC):
     def __init__(self):
-        raise TypeError(
-            "Rerankers cannot be instantiated. Use CLS.startup() instead."
-        )
+        raise TypeError("Rerankers cannot be instantiated. Use CLS.startup() instead.")
 
     @classmethod
     @abstractmethod
@@ -64,5 +62,3 @@ class AbstractReranker(ABC):
     def shutdown(cls):
         """Release model resources"""
         pass
-
-

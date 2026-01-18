@@ -1,6 +1,7 @@
 from .. import logger
 from .abstract_models import AbstractReranker
 
+
 class Qwen3Reranker(AbstractReranker):
     _model = None
 
@@ -13,7 +14,7 @@ class Qwen3Reranker(AbstractReranker):
         batch_size: int | None = None,
         max_length: int | None = None,
         **kwargs,
-    )-> list[float]:
+    ) -> list[float]:
         """
         Rerank passages based on their relevance to the query using Qwen3 model.
 
@@ -48,9 +49,11 @@ class Qwen3Reranker(AbstractReranker):
             logger.warning("Model is not started.")
             return []
 
-        pairs = [[query, passages]] if isinstance(passages, str) else [
-            [query, p] for p in passages
-        ]
+        pairs = (
+            [[query, passages]]
+            if isinstance(passages, str)
+            else [[query, p] for p in passages]
+        )
 
         return cls._model.compute_score(
             pairs,
@@ -67,7 +70,7 @@ class Qwen3Reranker(AbstractReranker):
         query_instruction: str | None = None,
         batch_size: int = 128,
         **kwargs,
-    )-> None:
+    ) -> None:
         """
         Initialize, load and warm-up Qwen3-Reranker model.
 
@@ -101,9 +104,9 @@ class Qwen3Reranker(AbstractReranker):
         try:
             cls._model = Qwen3RerankerModel(
                 model_name_or_path.strip(),
-                device = device,
-                instruction = query_instruction,
-                batch_size = batch_size,
+                device=device,
+                instruction=query_instruction,
+                batch_size=batch_size,
             )
             logger.info(f"{model_name_or_path} loaded.")
         except Exception as e:
@@ -112,7 +115,7 @@ class Qwen3Reranker(AbstractReranker):
             return
 
         try:
-            _ = cls._model.compute_score([('query', 'passage')])
+            _ = cls._model.compute_score([("query", "passage")])
             logger.info(f"{model_name_or_path} warmed-up.")
         except Exception as e:
             logger.error(f"Warming-up {model_name_or_path} failed: {e}")
@@ -130,5 +133,3 @@ class Qwen3Reranker(AbstractReranker):
             pass
         finally:
             cls._model = None
-
-
