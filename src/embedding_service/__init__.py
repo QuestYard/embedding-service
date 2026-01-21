@@ -1,4 +1,4 @@
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 __author__ = "Libin, QuestYard HuRAG Team"
 __description__ = "SDK and API for embedding and reranker models"
 
@@ -28,6 +28,8 @@ try:
     conf.service.port = conf.service.port or 8765
 except:
     pass
+
+conf.env.model_home = Path(conf.env.model_home).expanduser().resolve().as_posix()
 
 if conf.reranker.model.lower() == "glm":
     from dotenv import load_dotenv

@@ -1,0 +1,19 @@
+env:            # SERVER ENVIRONMENT
+  device:
+  model_home:   ~/.cache/modelscope/hub/models
+embedding:      # EMBEDDING MODEL CONFIGURATIONS
+  dense_model:  bge     # bge (default) or qwen3
+  sparse_model: bge     # bge (default) or splade
+  bge_name:     BAAI/bge-m3
+  qwen3_name:   Qwen/Qwen3-Embedding-0.6B
+  splade_name:  naver/splade-v3
+  batch_size:   16
+reranker:       # RERANKER MODEL CONFIGURATIONS
+  model:        glm     # bge (default) or qwen3 or glm
+  bge_name:     BAAI/bge-reranker-v2-m3
+  qwen3_name:   Qwen/Qwen3-Reranker-0.6B
+  batch_size:   4
+service:        # MICRO-SERVICE CONFIGURATIONS
+  host:         0.0.0.0
+  port:         8765
+

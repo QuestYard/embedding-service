@@ -33,7 +33,7 @@
 
 ### Reranker
 
-支持 BGE-Reranker-V2-M3 模型和 Qwen3-Reranker 系列模型，默认使用 BGE-Reranker-V2-M3 模型。在配置文件中设置 `reranker.model` 为 `bge` 或 `qwen3` 进行选择。
+支持 BGE-Reranker-V2-M3, Qwen3-Reranker-?B 系列的本地部署模型和 GLM Rerank 在线付费模型，默认使用 BGE-Reranker-V2-M3 模型。在配置文件中设置 `reranker.model` 为 `bge`, `qwen3` 或 `glm` 进行选择。
 
 *重排模型与内嵌模型不必要相互对应*。
 
