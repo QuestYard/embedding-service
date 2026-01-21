@@ -209,3 +209,5 @@ __marimo__/
 # Vim
 *.swp
 tags
+*.env
+embedding-service.yaml
