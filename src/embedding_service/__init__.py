@@ -12,6 +12,17 @@ logger = None  # Global logger
 
 # -- Initialization --
 
+import logging
+
+logger = logging.getLogger("hurag-embedding-svr")
+logger.propagate = False
+logger.setLevel(logging.INFO)
+fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s - %(message)s")
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(fmt)
+console_handler.setLevel(logging.INFO)
+logger.addHandler(console_handler)
+
 from .utilities import dict_to_namespace
 
 try:
@@ -26,26 +37,15 @@ try:
     conf.reranker.batch_size = conf.reranker.batch_size or 4
     conf.service.host = conf.service.host or "0.0.0.0"
     conf.service.port = conf.service.port or 8765
+
+    conf.env.model_home = Path(conf.env.model_home).expanduser().resolve().as_posix()
+    if conf.reranker.model.lower() == "glm":
+        from dotenv import load_dotenv
+        from pathlib import Path
+        load_dotenv(Path.cwd() / ".env")
 except:
+    conf = None
     pass
-
-conf.env.model_home = Path(conf.env.model_home).expanduser().resolve().as_posix()
-
-if conf.reranker.model.lower() == "glm":
-    from dotenv import load_dotenv
-    from pathlib import Path
-    load_dotenv(Path.cwd() / ".env")
-
-import logging
-
-logger = logging.getLogger("hurag-embedding-svr")
-logger.propagate = False
-logger.setLevel(logging.INFO)
-fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s - %(message)s")
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(fmt)
-console_handler.setLevel(logging.INFO)
-logger.addHandler(console_handler)
 
 from .async_embedding_client import AsyncEmbeddingClient
 
