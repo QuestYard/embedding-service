@@ -24,14 +24,15 @@ class AsyncEmbeddingClient:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            from . import logger
+            logger.error(
+                "Error while invoking embedding-service API",
+                exc_info=(exc_type, exc_val, exc_tb),
+            )
         if self._client:
             await self._client.aclose()
 
-    def _ensure_client(self):
-        if not self._client:
-            raise RuntimeError(
-                "Client not initialized. Use 'async with' context manager."
-            )
 
     async def embed(
         self,
@@ -65,7 +66,8 @@ class AsyncEmbeddingClient:
                 - A dictionary with the encoded embeddings.
                 - An EmbeddingPayloadMeta object with metadata.
         """
-        self._ensure_client()
+        if not self._client:
+            raise RuntimeError("Client not initialized.")
 
         request = EmbeddingRequest(
             sentences=sentences,
@@ -123,7 +125,8 @@ class AsyncEmbeddingClient:
             RerankResponse:
                 An RerankResponse object containing the reranked scores.
         """
-        self._ensure_client()
+        if not self._client:
+            raise RuntimeError("Client not initialized.")
 
         request = RerankRequest(
             query=query,

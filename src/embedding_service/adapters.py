@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from scipy.sparse import csr_matrix
     from torch import Tensor
-    from httpx import AsyncClient
     from .schemas import EmbeddingPayloadMeta
 
 
@@ -247,25 +246,23 @@ def unpack_unified_embeddings_from_bytes(
     colbert = None
 
     if meta.has_dense:
-        dt = meta.dense_dtype
-        shape = tuple(meta.dense_shape)
         raw = npz["dense_data"]
-        dense = np.asarray(raw, dtype=dt).reshape(shape)
+        dense = np.asarray(raw, dtype=meta.dense_dtype).reshape(meta.dense_shape)
 
-    if meta.has_sparse:
+    if meta.has_sparse and meta.sparse_meta is not None:
         data = npz["sparse_data"].astype(meta.sparse_meta.dtype)
         indices = npz["sparse_indices"].astype(np.int32)
         indptr = npz["sparse_indptr"].astype(np.int32)
-        shape = tuple(meta.sparse_meta.shape)
+        shape = meta.sparse_meta.shape
         sparse = csr_matrix((data, indices, indptr), shape=shape)
 
-    if meta.has_colbert:
+    if meta.has_colbert and meta.colbert_meta is not None:
         cm = meta.colbert_meta
-        count = int(cm.count)
+        count = cm.count
         dtype = cm.dtype
         colbert = []
         for i in range(count):
-            shape = tuple(cm.shapes[i])
+            shape = cm.shapes[i]
             raw = npz[f"colbert_{i}"]
             arr = np.asarray(raw, dtype=dtype).reshape(shape)
             colbert.append(arr)

@@ -211,3 +211,4 @@ __marimo__/
 tags
 *.env
 embedding-service.yaml
+pyrightconfig.json

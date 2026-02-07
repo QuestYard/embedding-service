@@ -1,22 +1,25 @@
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __author__ = "Libin, QuestYard HuRAG Team"
 __description__ = "SDK and API for embedding and reranker models"
 
 import yaml
+import logging
 from pathlib import Path
+from dotenv import load_dotenv
+from typing import Any
+
+load_dotenv(Path.cwd() / ".env")
 
 # -- Global Variables --
 
-conf = None  # Global configurations
-logger = None  # Global logger
+logger: logging.Logger
+conf: Any
 
 # -- Initialization --
 
-import logging
-
 logger = logging.getLogger("hurag-embedding-svr")
 logger.propagate = False
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s - %(message)s")
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(fmt)
@@ -40,12 +43,10 @@ try:
 
     conf.env.model_home = Path(conf.env.model_home).expanduser().resolve().as_posix()
     if conf.reranker.model.lower() == "glm":
-        from dotenv import load_dotenv
-        from pathlib import Path
         load_dotenv(Path.cwd() / ".env")
 except:
     conf = None
-    pass
+    raise
 
 from .async_embedding_client import AsyncEmbeddingClient
 

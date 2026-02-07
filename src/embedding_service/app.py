@@ -152,6 +152,7 @@ model_manager = ModelManager()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle."""
+    _ = app
     # Startup
     logger.info("Starting up embedding service...")
 
@@ -252,7 +253,7 @@ async def embed(request: EmbeddingRequest):
                     }
 
         # Get embeddings
-        if dense_step:
+        if dense_step and model_manager.dense_model is not None:
             dense_embeddings = model_manager.dense_model.encode(
                 sentences=request.sentences,
                 batch_size=request.batch_size or conf.embedding.batch_size,
@@ -262,7 +263,7 @@ async def embed(request: EmbeddingRequest):
             all_embeddings.update(dense_embeddings)
 
         # Get sparse embeddings (if different model)
-        if sparse_step:
+        if sparse_step and model_manager.sparse_model is not None:
             sparse_embeddings = model_manager.sparse_model.encode(
                 sentences=request.sentences,
                 batch_size=request.batch_size or conf.embedding.batch_size,
@@ -346,8 +347,8 @@ def main(host: str | None = None, port: int | None = None, reload: bool = False)
 
     uvicorn.run(
         "embedding_service.app:app",
-        host=host,
-        port=port,
+        host=host or "localhost",
+        port=port or 8765,
         workers=1,
         reload=reload,
         reload_dirs=[src_dir],
