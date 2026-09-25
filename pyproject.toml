@@ -10,6 +10,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "torch>=2.9.1; sys_platform == 'win32'",
     "torch>=2.9.1; sys_platform == 'linux'",
+    "torch>=2.9.1; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "torch>=2.2.2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
     "uvicorn>=0.38.0",
     "tenacity>=9.1.2",
@@ -30,6 +31,7 @@ dev = [
 
 [tool.uv]
 required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
     "sys_platform == 'darwin' and platform_machine == 'x86_64'",
     "sys_platform == 'win32'",
     "sys_platform == 'linux'",
@@ -37,14 +39,8 @@ required-environments = [
 
 [tool.uv.sources]
 torch = [
-    { index = "pytorch-cpu", marker = "sys_platform == 'linux'" },
     { index = "pytorch-cu130", marker = "sys_platform == 'win32'" },
 ]
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
 
 [[tool.uv.index]]
 name = "pytorch-cu130"

@@ -206,9 +206,17 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Vim
+# project & MacOS
 *.swp
 tags
 *.env
 embedding-service.yaml
 pyrightconfig.json
+
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Trashes
+.Spotlight-V100
+.TemporaryItems
